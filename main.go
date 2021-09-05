@@ -1,58 +1,27 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
+	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	handlers "github.com/kube-carbonara/cluster-agent/handlers"
-	"github.com/kube-carbonara/cluster-agent/models"
 	routers "github.com/kube-carbonara/cluster-agent/routers"
 	"github.com/labstack/echo/v4"
+	"github.com/rancher/remotedialer"
+	"github.com/sirupsen/logrus"
 )
 
 func init() {
 }
 
-var onMessage mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	clusterGuid := "afc014b73ac645b096ba49b261f0227b"
-	fetch := msg.Payload()
-	if string(fetch) == "" {
-		log.Print("Empty request ..")
-		return
-	}
-	var request models.ServerRequest
-	err := json.Unmarshal([]byte(fetch), &request)
-	if err != nil {
-		log.Printf("Failed to unmarshal ..: %s\n", err.Error())
-		return
-	}
-	if request.Prefix == "X-" {
-		return
-	}
-	log.Printf("Recevied new message")
-
-	requestHandler := handlers.RequestHandler{}
-	res := requestHandler.Handle(request)
-	res.Prefix = "X-"
-	resStr, err := json.Marshal(res)
-	token := client.Publish(fmt.Sprintf("clients/%s", clusterGuid), 0, false, resStr)
-	token.Wait()
-	if token.Error() != nil {
-		fmt.Print("Failed to publish message ", token.Error())
-	}
-}
-
-var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
-	fmt.Println("Connected")
-}
-
-var connectionLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
-	fmt.Printf("Connection Lost: %s\n", err.Error())
-}
+var (
+	addr  string
+	id    string
+	debug bool
+)
 
 func handleRouting(e *echo.Echo) {
 	namespacesRouter := routers.NameSpacesRouter{}
@@ -62,30 +31,34 @@ func handleRouting(e *echo.Echo) {
 }
 
 func main() {
-	clusterGuid := "afc014b73ac645b096ba49b261f0227b"
-
-	fmt.Print(clusterGuid)
-	options := mqtt.NewClientOptions()
-	options.AddBroker("tcp://localhost:1883")
-	options.SetClientID(fmt.Sprintf("Client-%s", clusterGuid))
-	options.OnConnect = connectHandler
-	options.OnConnectionLost = connectionLostHandler
-	client := mqtt.NewClient(options)
-	token := client.Connect()
-	if token.Wait() && token.Error() != nil {
-		panic(token.Error())
+	// set by default for dev env
+	if os.Getenv("SERVER_ADDRESS") == "" {
+		os.Setenv("SERVER_ADDRESS", "127.0.0.1:8099")
 	}
 
-	topic := fmt.Sprintf("clients/%s", clusterGuid)
-	if token := client.Subscribe(topic, 0, onMessage); token.Wait() && token.Error() != nil {
-		fmt.Printf("Failed to subscribe to the MQ-topic:%s\n", token.Error())
-		os.Exit(1)
+	clusterGuid := os.Getenv("CLIENT_ID")
+	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", os.Getenv("SERVER_ADDRESS")), "Address to connect to")
+	flag.StringVar(&id, "id", clusterGuid, "Client ID")
+	flag.BoolVar(&debug, "debug", true, "Debug logging")
+	flag.Parse()
+
+	if debug {
+		logrus.SetLevel(logrus.DebugLevel)
 	}
+
+	headers := http.Header{
+		"X-Tunnel-ID": []string{id},
+	}
+
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {
 		return context.String(http.StatusOK, "Hello, World!")
 	})
-	handleRouting(e)
 
+	time.AfterFunc(5*time.Second, func() {
+		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
+	})
+
+	handleRouting(e)
 	e.Logger.Fatal(e.Start(":1323"))
 }
