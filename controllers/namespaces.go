@@ -2,7 +2,6 @@ package controllers
 
 import (
 	ctx "context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/kube-carbonara/cluster-agent/models"
@@ -31,11 +30,5 @@ func (c NameSpacesController) Get(context echo.Context) error {
 			Message: err.Error(),
 		})
 	}
-	nameSpaces, _ := json.Marshal(result.Items)
-	return context.JSON(http.StatusOK, models.Response{
-		ResourceType: "namespace",
-		Status:       200,
-		Message:      "Test Data",
-		Data:         string(nameSpaces),
-	})
+	return context.JSON(http.StatusOK, result)
 }
