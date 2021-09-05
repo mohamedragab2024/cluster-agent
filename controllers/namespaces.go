@@ -36,6 +36,6 @@ func (c NameSpacesController) Get(context echo.Context) error {
 		ResourceType: "namespace",
 		Status:       200,
 		Message:      "Test Data",
-		Data:         nameSpaces,
+		Data:         string(nameSpaces),
 	})
 }

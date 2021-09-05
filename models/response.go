@@ -3,7 +3,7 @@ package models
 type Response struct {
 	Type         string `json:"type"`
 	ResourceType string `json:"resourceType"`
-	Data         []byte `json:"data"`
+	Data         string `json:"data"`
 	Status       int    `json:"status"`
 	Message      string `json:"message"`
 	Prefix       string `json:"prefix"`
