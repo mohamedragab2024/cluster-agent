@@ -49,16 +49,14 @@ func main() {
 	headers := http.Header{
 		"X-Tunnel-ID": []string{id},
 	}
+	time.AfterFunc(5*time.Second, func() {
+		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
+	})
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {
 		return context.String(http.StatusOK, "Hello, World!")
 	})
-
-	time.AfterFunc(5*time.Second, func() {
-		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
-	})
-
 	handleRouting(e)
 	e.Logger.Fatal(e.Start(":1323"))
 }

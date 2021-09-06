@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-carbo-agent-deployment
+  labels:
+    app: kube-carbo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-carbo
+  template:
+    metadata:
+      labels:
+        app: kube-carbo
+    spec:
+      containers:
+      - name: kube-carbo-agent
+        image: regoo707/kub-carbo-agent:latest
+        env:
+          - name: CLIENT_ID
+            value: test-agent-123
+          - name: SERVER_ADDRESS
+            value: 104.210.210.9:8099
+        ports:
+        - containerPort: 1323

@@ -13,4 +13,12 @@ func (router NameSpacesRouter) Handle(e *echo.Echo) {
 	e.GET("/namespaces", func(context echo.Context) error {
 		return nameSpacesController.Get(context)
 	})
+
+	e.POST("/namespaces/{id}", func(context echo.Context) error {
+		return nameSpacesController.Create(context, context.Param("id"))
+	})
+
+	e.DELETE("/namespaces/{id}", func(context echo.Context) error {
+		return nameSpacesController.Delete(context, context.Param("id"))
+	})
 }
