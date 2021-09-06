@@ -23,4 +23,9 @@ func (router DeploymentsRouter) Handle(e *echo.Echo) {
 	e.DELETE("/:ns/deployments/:id", func(context echo.Context) error {
 		return deploymentController.Delete(context, context.Param("ns"), context.Param("id"))
 	})
+
+	e.PUT("/:ns/deployments", func(context echo.Context) error {
+		deployment := utils.JsonBodyToMap(context.Request().Body)
+		return deploymentController.Update(context, context.Param("ns"), deployment)
+	})
 }
