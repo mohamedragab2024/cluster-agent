@@ -15,7 +15,6 @@ func (c PodsController) Get(context echo.Context) error {
 	fmt.Print("Getting from pods controller \n")
 	return context.JSON(http.StatusOK, models.Response{
 		ResourceType: "pods",
-		Status:       200,
 		Message:      "Test Data",
 	})
 }

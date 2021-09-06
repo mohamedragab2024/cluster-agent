@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/kube-carbonara/cluster-agent/models"
+	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,11 +28,14 @@ func (c NameSpacesController) Get(context echo.Context) error {
 	result, err := clientset.CoreV1().Namespaces().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
-			Status:  http.StatusBadRequest,
 			Message: err.Error(),
 		})
 	}
-	return context.JSON(http.StatusOK, result)
+
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: "NameSpaces",
+	})
 }
 
 func (c NameSpacesController) Delete(context echo.Context, name string) error {
@@ -47,7 +51,6 @@ func (c NameSpacesController) Delete(context echo.Context, name string) error {
 	hasErr := clientset.CoreV1().Namespaces().Delete(ctx.TODO(), name, metav1.DeleteOptions{})
 	if hasErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
-			Status:  http.StatusBadRequest,
 			Message: err.Error(),
 		})
 	}
@@ -73,7 +76,6 @@ func (c NameSpacesController) Create(context echo.Context, name string) error {
 	result, err := clientset.CoreV1().Namespaces().Create(ctx.TODO(), ns, metav1.CreateOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
-			Status:  http.StatusBadRequest,
 			Message: err.Error(),
 		})
 	}
