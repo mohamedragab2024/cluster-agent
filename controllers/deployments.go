@@ -68,6 +68,35 @@ func (c DeploymentsControllers) Create(context echo.Context, nameSpaceName strin
 	})
 }
 
+func (c DeploymentsControllers) Update(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+	deployment := &v1.Deployment{}
+	UnmarshalErr := json.Unmarshal(utils.MapToJson(deploymentConfig), deployment)
+	if UnmarshalErr != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: UnmarshalErr.Error(),
+		})
+	}
+	result, err := clientset.AppsV1().Deployments(nameSpaceName).Update(ctx.TODO(), deployment, metav1.UpdateOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
+	})
+}
+
 func (c DeploymentsControllers) Delete(context echo.Context, nameSpaceName string, name string) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {

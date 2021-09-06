@@ -12,10 +12,10 @@ spec:
   template:
     metadata:
       labels:
-        app:test-nginx
+        app: test-nginx
     spec:
       containers:
-      - name: test-nginx-app
+      - name: nginx
         image: nginx:1.14.2
         ports:
         - containerPort: 80
