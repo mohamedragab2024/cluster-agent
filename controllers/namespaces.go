@@ -25,6 +25,7 @@ func (c NameSpacesController) Get(context echo.Context) error {
 	if err != nil {
 		panic(err.Error())
 	}
+
 	result, err := clientset.CoreV1().Namespaces().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
@@ -34,7 +35,7 @@ func (c NameSpacesController) Get(context echo.Context) error {
 
 	return context.JSON(http.StatusOK, models.Response{
 		Data:         utils.StructToMap(result),
-		ResourceType: "NameSpaces",
+		ResourceType: utils.RESOUCETYPE_NAMESPACES,
 	})
 }
 
@@ -45,11 +46,13 @@ func (c NameSpacesController) Delete(context echo.Context, name string) error {
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
 	}
 
-	hasErr := clientset.CoreV1().Namespaces().Delete(ctx.TODO(), name, metav1.DeleteOptions{})
-	if hasErr != nil {
+	clientSetErr := clientset.CoreV1().Namespaces().Delete(ctx.TODO(), name, metav1.DeleteOptions{})
+	if clientSetErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 		})
@@ -64,7 +67,9 @@ func (c NameSpacesController) Create(context echo.Context, name string) error {
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
 	}
 
 	ns := &v1.Namespace{
@@ -79,5 +84,8 @@ func (c NameSpacesController) Create(context echo.Context, name string) error {
 			Message: err.Error(),
 		})
 	}
-	return context.JSON(http.StatusCreated, result)
+	return context.JSON(http.StatusCreated, models.Response{
+		ResourceType: utils.RESOUCETYPE_NAMESPACES,
+		Data:         utils.StructToMap(result),
+	})
 }

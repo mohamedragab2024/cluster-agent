@@ -26,8 +26,10 @@ var (
 func handleRouting(e *echo.Echo) {
 	namespacesRouter := routers.NameSpacesRouter{}
 	podsRouter := routers.PodsRouter{}
+	deplymentRouter := routers.DeploymentsRouter{}
 	namespacesRouter.Handle(e)
 	podsRouter.Handle(e)
+	deplymentRouter.Handle(e)
 }
 
 func main() {
