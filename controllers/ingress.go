@@ -3,7 +3,6 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/kube-carbonara/cluster-agent/models"
@@ -33,7 +32,12 @@ func (c IngressController) Create(context echo.Context, nameSpaceName string, in
 			Message: UnmarshalErr.Error(),
 		})
 	}
-	result := clientset.AppsV1beta1().RESTClient().Post().Resource(fmt.Sprintf("/ingress/namespace/%s", nameSpaceName)).Body(ingress).Do(ctx.TODO())
+
+	result := clientset.RESTClient().Post().
+		NamespaceIfScoped(nameSpaceName, true).
+		Resource("ingress").
+		Body(ingress).
+		Do(ctx.TODO())
 
 	return context.JSON(http.StatusOK, models.Response{
 		Data:         utils.StructToMap(result),
