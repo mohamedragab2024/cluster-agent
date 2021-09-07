@@ -8,11 +8,9 @@ import (
 	"github.com/kube-carbonara/cluster-agent/models"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
-	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/apimachinery/pkg/api/meta"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes"
+	networkingv1client "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -24,39 +22,25 @@ func (c IngressController) Create(context echo.Context, nameSpaceName string, in
 	if err != nil {
 		panic(err.Error())
 	}
-	clientset, err := kubernetes.NewForConfig(config)
+	client, err := networkingv1client.NewForConfig(config)
 	if err != nil {
 		panic(err.Error())
 	}
-	ingress := &v1beta1.Ingress{}
+	ingress := &networkingv1.Ingress{}
 	UnmarshalErr := json.Unmarshal(utils.MapToJson(ingressConfig), ingress)
 	if UnmarshalErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: UnmarshalErr.Error(),
 		})
 	}
-
-	var opts metav1.CreateOptions
-	m, err := meta.Accessor(ingress)
-
-	var result runtime.Object
-	createErr := clientset.RESTClient().Post().
-		NamespaceIfScoped(nameSpaceName, true).
-		Resource("ingresses").
-		Name(m.GetName()).
-		VersionedParams(&opts, metav1.ParameterCodec).
-		Body(ingress).
-		Do(ctx.TODO()).
-		Into(result)
-
-	if createErr != nil {
-		return context.JSON(http.StatusInternalServerError, models.Response{
-			Message:      createErr.Error(),
-			ResourceType: utils.RESOUCETYPE_INGRESS,
+	ingress, err = client.Ingresses(nameSpaceName).Create(ctx.TODO(), ingress, metav1.CreateOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
 		})
 	}
 	return context.JSON(http.StatusOK, models.Response{
-		Data:         utils.StructToMap(result),
+		Data:         utils.StructToMap(ingress),
 		ResourceType: utils.RESOUCETYPE_INGRESS,
 	})
 }
