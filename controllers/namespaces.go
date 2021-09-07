@@ -50,7 +50,6 @@ func (c NameSpacesController) Delete(context echo.Context, name string) error {
 			Message: err.Error(),
 		})
 	}
-
 	clientSetErr := clientset.CoreV1().Namespaces().Delete(ctx.TODO(), name, metav1.DeleteOptions{})
 	if clientSetErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{

@@ -27,17 +27,16 @@ func handleRouting(e *echo.Echo) {
 	namespacesRouter := routers.NameSpacesRouter{}
 	podsRouter := routers.PodsRouter{}
 	deplymentRouter := routers.DeploymentsRouter{}
+	serviceRouter := routers.SeviceRouter{}
+	nodeRouter := routers.NodesRouter{}
 	namespacesRouter.Handle(e)
 	podsRouter.Handle(e)
 	deplymentRouter.Handle(e)
+	serviceRouter.Handle(e)
+	nodeRouter.Handle(e)
 }
 
 func main() {
-	// set by default for dev env
-	if os.Getenv("SERVER_ADDRESS") == "" {
-		os.Setenv("SERVER_ADDRESS", "127.0.0.1:8099")
-	}
-
 	clusterGuid := os.Getenv("CLIENT_ID")
 	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", os.Getenv("SERVER_ADDRESS")), "Address to connect to")
 	flag.StringVar(&id, "id", clusterGuid, "Client ID")

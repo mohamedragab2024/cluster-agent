@@ -14,10 +14,10 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-type PodsController struct {
+type ServicesController struct {
 }
 
-func (c PodsController) Get(context echo.Context, nameSpaceName string) error {
+func (c ServicesController) Get(context echo.Context, nameSpaceName string) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -27,7 +27,7 @@ func (c PodsController) Get(context echo.Context, nameSpaceName string) error {
 		panic(err.Error())
 	}
 
-	result, err := clientset.CoreV1().Pods(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{})
+	result, err := clientset.CoreV1().Services(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -36,11 +36,11 @@ func (c PodsController) Get(context echo.Context, nameSpaceName string) error {
 
 	return context.JSON(http.StatusOK, models.Response{
 		Data:         utils.StructToMap(result),
-		ResourceType: utils.RESOUCETYPE_PODS,
+		ResourceType: utils.RESOUCETYPE_SERVICES,
 	})
 }
 
-func (c PodsController) Create(context echo.Context, nameSpaceName string, podConfig map[string]interface{}) error {
+func (c ServicesController) Create(context echo.Context, nameSpaceName string, serviceConfig map[string]interface{}) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -49,14 +49,14 @@ func (c PodsController) Create(context echo.Context, nameSpaceName string, podCo
 	if err != nil {
 		panic(err.Error())
 	}
-	pod := &v1.Pod{}
-	UnmarshalErr := json.Unmarshal(utils.MapToJson(podConfig), pod)
+	service := &v1.Service{}
+	UnmarshalErr := json.Unmarshal(utils.MapToJson(serviceConfig), service)
 	if UnmarshalErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: UnmarshalErr.Error(),
 		})
 	}
-	result, err := clientset.CoreV1().Pods(nameSpaceName).Create(ctx.TODO(), pod, metav1.CreateOptions{})
+	result, err := clientset.CoreV1().Services(nameSpaceName).Create(ctx.TODO(), service, metav1.CreateOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -65,11 +65,11 @@ func (c PodsController) Create(context echo.Context, nameSpaceName string, podCo
 
 	return context.JSON(http.StatusOK, models.Response{
 		Data:         utils.StructToMap(result),
-		ResourceType: utils.RESOUCETYPE_PODS,
+		ResourceType: utils.RESOUCETYPE_SERVICES,
 	})
 }
 
-func (c PodsController) Update(context echo.Context, nameSpaceName string, podConfig map[string]interface{}) error {
+func (c ServicesController) Update(context echo.Context, nameSpaceName string, serviceConfig map[string]interface{}) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -78,14 +78,14 @@ func (c PodsController) Update(context echo.Context, nameSpaceName string, podCo
 	if err != nil {
 		panic(err.Error())
 	}
-	pod := &v1.Pod{}
-	UnmarshalErr := json.Unmarshal(utils.MapToJson(podConfig), pod)
+	service := &v1.Service{}
+	UnmarshalErr := json.Unmarshal(utils.MapToJson(serviceConfig), service)
 	if UnmarshalErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: UnmarshalErr.Error(),
 		})
 	}
-	result, err := clientset.CoreV1().Pods(nameSpaceName).Update(ctx.TODO(), pod, metav1.UpdateOptions{})
+	result, err := clientset.CoreV1().Services(nameSpaceName).Update(ctx.TODO(), service, metav1.UpdateOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -94,11 +94,11 @@ func (c PodsController) Update(context echo.Context, nameSpaceName string, podCo
 
 	return context.JSON(http.StatusOK, models.Response{
 		Data:         utils.StructToMap(result),
-		ResourceType: utils.RESOUCETYPE_PODS,
+		ResourceType: utils.RESOUCETYPE_SERVICES,
 	})
 }
 
-func (c PodsController) Delete(context echo.Context, nameSpaceName string, name string) error {
+func (c ServicesController) Delete(context echo.Context, nameSpaceName string, name string) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -108,7 +108,7 @@ func (c PodsController) Delete(context echo.Context, nameSpaceName string, name 
 		panic(err.Error())
 	}
 
-	deleteErr := clientset.CoreV1().Pods(nameSpaceName).Delete(ctx.TODO(), name, metav1.DeleteOptions{})
+	deleteErr := clientset.CoreV1().Services(nameSpaceName).Delete(ctx.TODO(), name, metav1.DeleteOptions{})
 	if deleteErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -117,6 +117,6 @@ func (c PodsController) Delete(context echo.Context, nameSpaceName string, name 
 
 	return context.JSON(http.StatusNoContent, models.Response{
 		Data:         nil,
-		ResourceType: utils.RESOUCETYPE_PODS,
+		ResourceType: utils.RESOUCETYPE_SERVICES,
 	})
 }
