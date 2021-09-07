@@ -12,7 +12,7 @@ type IngresRouter struct {
 func (router IngresRouter) Handle(e *echo.Echo) {
 	ingressController := controllers.IngressController{}
 
-	e.POST("/:ns/deployments", func(context echo.Context) error {
+	e.POST("/:ns/ingress", func(context echo.Context) error {
 		ingress := utils.JsonBodyToMap(context.Request().Body)
 		return ingressController.Create(context, context.Param("ns"), ingress)
 	})
