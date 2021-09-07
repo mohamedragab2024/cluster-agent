@@ -9,6 +9,8 @@ import (
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
 	"k8s.io/api/extensions/v1beta1"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -34,10 +36,15 @@ func (c IngressController) Create(context echo.Context, nameSpaceName string, in
 		})
 	}
 
+	var opts metav1.CreateOptions
+	m, err := meta.Accessor(ingress)
+
 	var result runtime.Object
 	createErr := clientset.RESTClient().Post().
 		NamespaceIfScoped(nameSpaceName, true).
-		Resource("ingress").
+		Resource("ingresses").
+		Name(m.GetName()).
+		VersionedParams(&opts, metav1.ParameterCodec).
 		Body(ingress).
 		Do(ctx.TODO()).
 		Into(result)
