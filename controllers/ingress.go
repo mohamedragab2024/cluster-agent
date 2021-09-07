@@ -17,6 +17,52 @@ import (
 type IngressController struct {
 }
 
+func (c IngressController) GetOne(context echo.Context, nameSpaceName string, name string) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	client, err := networkingv1client.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	result, err := client.Ingresses(nameSpaceName).Get(ctx.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: utils.RESOUCETYPE_INGRESS,
+	})
+}
+
+func (c IngressController) Get(context echo.Context, nameSpaceName string) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	client, err := networkingv1client.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	result, err := client.Ingresses(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: utils.RESOUCETYPE_INGRESS,
+	})
+}
+
 func (c IngressController) Create(context echo.Context, nameSpaceName string, ingressConfig map[string]interface{}) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -43,4 +89,51 @@ func (c IngressController) Create(context echo.Context, nameSpaceName string, in
 		Data:         utils.StructToMap(ingress),
 		ResourceType: utils.RESOUCETYPE_INGRESS,
 	})
+}
+
+func (c IngressController) Update(context echo.Context, nameSpaceName string, ingressConfig map[string]interface{}) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	client, err := networkingv1client.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+	ingress := &networkingv1.Ingress{}
+	UnmarshalErr := json.Unmarshal(utils.MapToJson(ingressConfig), ingress)
+	if UnmarshalErr != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: UnmarshalErr.Error(),
+		})
+	}
+	ingress, err = client.Ingresses(nameSpaceName).Update(ctx.TODO(), ingress, metav1.UpdateOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(ingress),
+		ResourceType: utils.RESOUCETYPE_INGRESS,
+	})
+}
+
+func (c IngressController) Delete(context echo.Context, nameSpaceName string, name string) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	client, err := networkingv1client.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = client.Ingresses(nameSpaceName).Delete(ctx.TODO(), name, metav1.DeleteOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+	return context.JSON(http.StatusNoContent, nil)
 }

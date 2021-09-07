@@ -16,6 +16,29 @@ import (
 
 type DeploymentsControllers struct{}
 
+func (c DeploymentsControllers) GetOne(context echo.Context, nameSpaceName string, name string) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	result, err := clientset.AppsV1().Deployments(nameSpaceName).Get(ctx.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
+	})
+}
+
 func (c DeploymentsControllers) Get(context echo.Context, nameSpaceName string) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {

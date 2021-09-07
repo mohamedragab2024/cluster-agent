@@ -15,6 +15,10 @@ func (router PodsRouter) Handle(e *echo.Echo) {
 		return podsController.Get(context, context.Param("ns"))
 	})
 
+	e.GET("/:ns/pods/:id", func(context echo.Context) error {
+		return podsController.GetOne(context, context.Param("ns"), context.Param("id"))
+	})
+
 	e.POST("/:ns/pods", func(context echo.Context) error {
 		deployment := utils.JsonBodyToMap(context.Request().Body)
 		return podsController.Create(context, context.Param("ns"), deployment)

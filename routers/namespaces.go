@@ -14,6 +14,9 @@ func (router NameSpacesRouter) Handle(e *echo.Echo) {
 		return nameSpacesController.Get(context)
 	})
 
+	e.GET("/namespaces/:id", func(context echo.Context) error {
+		return nameSpacesController.GetOne(context, context.Param("id"))
+	})
 	e.POST("/namespaces/:id", func(context echo.Context) error {
 		return nameSpacesController.Create(context, context.Param("id"))
 	})

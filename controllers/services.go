@@ -17,6 +17,29 @@ import (
 type ServicesController struct {
 }
 
+func (c ServicesController) GetOne(context echo.Context, nameSpaceName string, name string) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	result, err := clientset.CoreV1().Services(nameSpaceName).Get(ctx.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: utils.RESOUCETYPE_SERVICES,
+	})
+}
+
 func (c ServicesController) Get(context echo.Context, nameSpaceName string) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {

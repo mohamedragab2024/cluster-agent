@@ -14,6 +14,10 @@ func (router SeviceRouter) Handle(e *echo.Echo) {
 		return serviceController.Get(context, context.Param("ns"))
 	})
 
+	e.GET("/:ns/services/:id", func(context echo.Context) error {
+		return serviceController.GetOne(context, context.Param("ns"), context.Param("id"))
+	})
+
 	e.POST("/:ns/services", func(context echo.Context) error {
 		deployment := utils.JsonBodyToMap(context.Request().Body)
 		return serviceController.Create(context, context.Param("ns"), deployment)

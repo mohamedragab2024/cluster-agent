@@ -14,6 +14,10 @@ func (router NodesRouter) Handle(e *echo.Echo) {
 		return nodesController.Get(context)
 	})
 
+	e.GET("/nodes/:id", func(context echo.Context) error {
+		return nodesController.GetOne(context, context.Param("id"))
+	})
+
 	e.POST("/nodes/:id", func(context echo.Context) error {
 		node := utils.JsonBodyToMap(context.Request().Body)
 		return nodesController.Create(context, node)
