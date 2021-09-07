@@ -9,7 +9,7 @@ import (
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
 	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/client-go/1.5/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
