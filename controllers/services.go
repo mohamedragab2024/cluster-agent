@@ -20,7 +20,7 @@ type ServicesController struct {
 }
 
 func (c ServicesController) Watch() {
-	fmt.Printf("Watching Services")
+
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -31,6 +31,7 @@ func (c ServicesController) Watch() {
 	}
 
 	for {
+		fmt.Printf("Watching Services in ns-nginx ...")
 		watcher, err := clientset.CoreV1().Services("ns-nginx").Watch(ctx.Background(), metav1.ListOptions{})
 		if err != nil {
 			panic(err.Error())
