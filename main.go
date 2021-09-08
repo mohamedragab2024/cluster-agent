@@ -60,7 +60,7 @@ func main() {
 	}
 	time.AfterFunc(5*time.Second, func() {
 		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
-		handleWatchers()
+		go handleWatchers()
 	})
 
 	e := echo.New()

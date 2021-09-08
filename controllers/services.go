@@ -20,6 +20,7 @@ type ServicesController struct {
 }
 
 func (c ServicesController) Watch() {
+	fmt.Printf("Watching Services")
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -34,8 +35,6 @@ func (c ServicesController) Watch() {
 		if err != nil {
 			panic(err.Error())
 		}
-
-		fmt.Printf("Watching service events length %d", len(watcher.ResultChan()))
 		for {
 			for event := range watcher.ResultChan() {
 				svc := event.Object.(*v1.Service)
