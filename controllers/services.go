@@ -4,7 +4,6 @@ import (
 	ctx "context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/kube-carbonara/cluster-agent/models"
@@ -30,22 +29,23 @@ func (c ServicesController) Watch() {
 		panic(err.Error())
 	}
 
-	watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	for {
-		for event := range watcher.ResultChan() {
-			svc := event.Object.(*v1.Service)
+		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
+		if err != nil {
+			panic(err.Error())
+		}
+		for {
+			for event := range watcher.ResultChan() {
+				svc := event.Object.(*v1.Service)
 
-			switch event.Type {
-			case watch.Added:
-				fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			case watch.Modified:
-				fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			case watch.Deleted:
-				fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				switch event.Type {
+				case watch.Added:
+					fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				case watch.Modified:
+					fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				case watch.Deleted:
+					fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				}
 			}
 		}
 	}
