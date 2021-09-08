@@ -35,16 +35,18 @@ func (c ServicesController) Watch() {
 		log.Fatal(err)
 	}
 
-	for event := range watcher.ResultChan() {
-		svc := event.Object.(*v1.Service)
+	for {
+		for event := range watcher.ResultChan() {
+			svc := event.Object.(*v1.Service)
 
-		switch event.Type {
-		case watch.Added:
-			fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-		case watch.Modified:
-			fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-		case watch.Deleted:
-			fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			switch event.Type {
+			case watch.Added:
+				fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			case watch.Modified:
+				fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			case watch.Deleted:
+				fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			}
 		}
 	}
 }
