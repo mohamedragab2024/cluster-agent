@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	handlers "github.com/kube-carbonara/cluster-agent/handlers"
 	routers "github.com/kube-carbonara/cluster-agent/routers"
 	"github.com/labstack/echo/v4"
 	"github.com/rancher/remotedialer"
@@ -38,6 +39,12 @@ func handleRouting(e *echo.Echo) {
 	ingressRouter.Handle(e)
 }
 
+func handleWatchers() {
+	watcherHandler := handlers.WatcherHanlder{}
+
+	watcherHandler.Handle()
+}
+
 func main() {
 	clusterGuid := os.Getenv("CLIENT_ID")
 	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", os.Getenv("SERVER_ADDRESS")), "Address to connect to")
@@ -53,15 +60,7 @@ func main() {
 		"X-Tunnel-ID": []string{id},
 	}
 	time.AfterFunc(5*time.Second, func() {
-		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true },
-			func(c context.Context) (err error) {
-				if err != nil {
-					fmt.Print("Failed to connect to the remote proxy restarting ...")
-					os.Exit(3)
-				}
-				return err
-			},
-		)
+		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
 	})
 
 	e := echo.New()
@@ -69,5 +68,6 @@ func main() {
 		return context.String(http.StatusOK, "Hello, World!")
 	})
 	handleRouting(e)
+	handleWatchers()
 	e.Logger.Fatal(e.Start(":1323"))
 }

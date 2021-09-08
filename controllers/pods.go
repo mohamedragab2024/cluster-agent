@@ -3,6 +3,8 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/kube-carbonara/cluster-agent/models"
@@ -10,11 +12,40 @@ import (
 	"github.com/labstack/echo/v4"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
 type PodsController struct {
+}
+
+func (c PodsController) Watch() {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+	watcher, err := clientset.CoreV1().Pods(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for event := range watcher.ResultChan() {
+		svc := event.Object.(*v1.Service)
+
+		switch event.Type {
+		case watch.Added:
+			fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+		case watch.Modified:
+			fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+		case watch.Deleted:
+			fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+		}
+	}
 }
 
 func (c PodsController) GetOne(context echo.Context, nameSpaceName string, name string) error {
