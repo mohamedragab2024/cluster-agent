@@ -30,10 +30,12 @@ func (c ServicesController) Watch() {
 	}
 
 	for {
-		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
+		watcher, err := clientset.CoreV1().Services("ns-nginx").Watch(ctx.Background(), metav1.ListOptions{})
 		if err != nil {
 			panic(err.Error())
 		}
+
+		fmt.Printf("Watching service events length %d", len(watcher.ResultChan()))
 		for {
 			for event := range watcher.ResultChan() {
 				svc := event.Object.(*v1.Service)

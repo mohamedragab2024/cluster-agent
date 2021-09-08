@@ -41,7 +41,6 @@ func handleRouting(e *echo.Echo) {
 
 func handleWatchers() {
 	watcherHandler := handlers.WatcherHanlder{}
-
 	watcherHandler.Handle()
 }
 

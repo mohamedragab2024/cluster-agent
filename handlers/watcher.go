@@ -7,6 +7,6 @@ import (
 type WatcherHanlder struct{}
 
 func (c WatcherHanlder) Handle() {
-	controllers.ServicesController{}.Watch()
-	controllers.PodsController{}.Watch()
+	(controllers.ServicesController{}).Watch()
+	(controllers.PodsController{}).Watch()
 }
