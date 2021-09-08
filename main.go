@@ -61,6 +61,7 @@ func main() {
 	}
 	time.AfterFunc(5*time.Second, func() {
 		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
+		handleWatchers()
 	})
 
 	e := echo.New()
@@ -68,6 +69,6 @@ func main() {
 		return context.String(http.StatusOK, "Hello, World!")
 	})
 	handleRouting(e)
-	handleWatchers()
+
 	e.Logger.Fatal(e.Start(":1323"))
 }
