@@ -53,7 +53,15 @@ func main() {
 		"X-Tunnel-ID": []string{id},
 	}
 	time.AfterFunc(5*time.Second, func() {
-		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
+		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true },
+			func(c context.Context) (err error) {
+				if err != nil {
+					fmt.Print("Failed to connect to the remote proxy restarting ...")
+					os.Exit(3)
+				}
+				return err
+			},
+		)
 	})
 
 	e := echo.New()
