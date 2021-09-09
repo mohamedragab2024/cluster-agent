@@ -22,6 +22,7 @@ type ServicesController struct {
 func (c ServicesController) Watch() {
 
 	for {
+		fmt.Print("Checking events ...")
 		config, err := rest.InClusterConfig()
 		if err != nil {
 			fmt.Printf("error InClusterConfig %s", err.Error())
