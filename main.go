@@ -45,6 +45,13 @@ func handleWatchers() {
 }
 
 func main() {
+	if os.Getenv("SERVER_ADDRESS") == "" {
+		os.Setenv("SERVER_ADDRESS", "104.210.210.9:8099")
+	}
+
+	if os.Getenv("CLIENT_ID") == "" {
+		os.Setenv("CLIENT_ID", "unit-test")
+	}
 	clusterGuid := os.Getenv("CLIENT_ID")
 	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", os.Getenv("SERVER_ADDRESS")), "Address to connect to")
 	flag.StringVar(&id, "id", clusterGuid, "Client ID")

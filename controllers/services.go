@@ -32,27 +32,32 @@ func (c ServicesController) Watch() {
 		panic(err.Error())
 	}
 
-	for {
-		fmt.Print("Watching ...")
-		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
+	go func() {
 		for {
-			for event := range watcher.ResultChan() {
-				svc := event.Object.(*v1.Service)
+			fmt.Print("Watching ...")
+			watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
+			if err != nil {
+				fmt.Printf("Error watching services %s", err.Error())
+				panic(err.Error())
+			}
 
-				switch event.Type {
-				case watch.Added:
-					fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				case watch.Modified:
-					fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				case watch.Deleted:
-					fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			fmt.Printf("event count %d", len(watcher.ResultChan()))
+			for {
+				for event := range watcher.ResultChan() {
+					svc := event.Object.(*v1.Service)
+
+					switch event.Type {
+					case watch.Added:
+						fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+					case watch.Modified:
+						fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+					case watch.Deleted:
+						fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+					}
 				}
 			}
 		}
-	}
+	}()
 }
 
 func (c ServicesController) GetOne(context echo.Context, nameSpaceName string, name string) error {
