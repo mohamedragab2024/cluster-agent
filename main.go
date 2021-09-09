@@ -39,12 +39,8 @@ func handleRouting(e *echo.Echo) {
 	ingressRouter.Handle(e)
 }
 
-func handleWatchers() {
-	watcherHandler := handlers.WatcherHanlder{}
-	watcherHandler.Handle()
-}
-
 func main() {
+	watcherHandler := handlers.WatcherHanlder{}
 	if os.Getenv("SERVER_ADDRESS") == "" {
 		os.Setenv("SERVER_ADDRESS", "104.210.210.9:8099")
 	}
@@ -70,8 +66,8 @@ func main() {
 
 	})
 
-	time.AfterFunc(20*time.Second, func() {
-		handleWatchers()
+	time.AfterFunc(10*time.Second, func() {
+		watcherHandler.Handle()
 	})
 
 	e := echo.New()

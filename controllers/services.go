@@ -20,21 +20,23 @@ type ServicesController struct {
 }
 
 func (c ServicesController) Watch() {
-
+	fmt.Print("Checking events ...")
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		fmt.Printf("error InClusterConfig %s", err.Error())
+		panic(err.Error())
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		fmt.Printf("error create new k8s client %s", err.Error())
+		panic(err.Error())
+	}
 	for {
-		fmt.Print("Checking events ...")
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			fmt.Printf("error InClusterConfig %s", err.Error())
-			panic(err.Error())
-		}
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			fmt.Printf("error create new k8s client %s", err.Error())
-			panic(err.Error())
-		}
 
-		result, err := clientset.CoreV1().Services(v1.NamespaceAll).List(ctx.TODO(), metav1.ListOptions{})
+		result, err := clientset.CoreV1().Services(v1.NamespaceAll).List(ctx.Background(), metav1.ListOptions{})
+		if err != nil {
+			fmt.Printf("failed to get services %s", err.Error())
+		}
 		fmt.Printf("Services count : %d", len(result.Items))
 		time.Sleep(10 * time.Second)
 	}
