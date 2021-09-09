@@ -67,9 +67,12 @@ func main() {
 	}
 	time.AfterFunc(5*time.Second, func() {
 		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
+
 	})
 
-	go handleWatchers()
+	time.AfterFunc(20*time.Second, func() {
+		handleWatchers()
+	})
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {

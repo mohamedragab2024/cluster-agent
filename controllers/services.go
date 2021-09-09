@@ -20,44 +20,37 @@ type ServicesController struct {
 }
 
 func (c ServicesController) Watch() {
-	fmt.Print("Watching Services...")
+
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		fmt.Printf("error in cluster config %s", err.Error())
 		panic(err.Error())
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		fmt.Printf("error in new client %s", err.Error())
 		panic(err.Error())
 	}
 
-	go func() {
+	for {
+		fmt.Printf("Watching Services in ns-nginx ...")
+		watcher, err := clientset.CoreV1().Services("ns-nginx").Watch(ctx.Background(), metav1.ListOptions{})
+		if err != nil {
+			panic(err.Error())
+		}
 		for {
-			fmt.Print("Watching ...")
-			watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
-			if err != nil {
-				fmt.Printf("Error watching services %s", err.Error())
-				panic(err.Error())
-			}
+			for event := range watcher.ResultChan() {
+				svc := event.Object.(*v1.Service)
 
-			fmt.Printf("event count %d", len(watcher.ResultChan()))
-			for {
-				for event := range watcher.ResultChan() {
-					svc := event.Object.(*v1.Service)
-
-					switch event.Type {
-					case watch.Added:
-						fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-					case watch.Modified:
-						fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-					case watch.Deleted:
-						fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-					}
+				switch event.Type {
+				case watch.Added:
+					fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				case watch.Modified:
+					fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				case watch.Deleted:
+					fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
 				}
 			}
 		}
-	}()
+	}
 }
 
 func (c ServicesController) GetOne(context echo.Context, nameSpaceName string, name string) error {
