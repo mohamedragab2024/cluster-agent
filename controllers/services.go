@@ -20,17 +20,20 @@ type ServicesController struct {
 }
 
 func (c ServicesController) Watch() {
-	fmt.Printf("Watching Services...")
+	fmt.Print("Watching Services...")
 	config, err := rest.InClusterConfig()
 	if err != nil {
+		fmt.Printf("error in cluster config %s", err.Error())
 		panic(err.Error())
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
+		fmt.Printf("error in new client %s", err.Error())
 		panic(err.Error())
 	}
 
 	for {
+		fmt.Print("Watching ...")
 		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
 		if err != nil {
 			panic(err.Error())
