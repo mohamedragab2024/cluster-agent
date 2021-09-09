@@ -37,7 +37,7 @@ func (c ServicesController) Watch() {
 		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 		if err != nil {
 			fmt.Printf("error watching services %s", err.Error())
-			panic(err.Error())
+			//panic(err.Error())
 		}
 
 		fmt.Printf("Events count %d", len(watcher.ResultChan()))
