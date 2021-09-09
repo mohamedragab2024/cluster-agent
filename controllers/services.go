@@ -11,7 +11,6 @@ import (
 	"github.com/labstack/echo/v4"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -21,38 +20,38 @@ type ServicesController struct {
 
 func (c ServicesController) Watch() {
 
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		fmt.Printf("error InClusterConfig %s", err.Error())
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		fmt.Printf("error create new k8s client %s", err.Error())
-		panic(err.Error())
-	}
+	// config, err := rest.InClusterConfig()
+	// if err != nil {
+	// 	fmt.Printf("error InClusterConfig %s", err.Error())
+	// 	panic(err.Error())
+	// }
+	// clientset, err := kubernetes.NewForConfig(config)
+	// if err != nil {
+	// 	fmt.Printf("error create new k8s client %s", err.Error())
+	// 	panic(err.Error())
+	// }
 
 	for {
 		fmt.Printf("Watching Services ... \n")
-		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
-		if err != nil {
-			fmt.Printf("error watching services %s", err.Error())
-			panic(err.Error())
-		}
-		for {
-			for event := range watcher.ResultChan() {
-				svc := event.Object.(*v1.Service)
+		// watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
+		// if err != nil {
+		// 	fmt.Printf("error watching services %s", err.Error())
+		// 	panic(err.Error())
+		// }
+		// for {
+		// 	for event := range watcher.ResultChan() {
+		// 		svc := event.Object.(*v1.Service)
 
-				switch event.Type {
-				case watch.Added:
-					fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				case watch.Modified:
-					fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				case watch.Deleted:
-					fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				}
-			}
-		}
+		// 		switch event.Type {
+		// 		case watch.Added:
+		// 			fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+		// 		case watch.Modified:
+		// 			fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+		// 		case watch.Deleted:
+		// 			fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+		// 		}
+		// 	}
+		// }
 	}
 }
 
