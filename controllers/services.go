@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -31,32 +32,26 @@ func (c ServicesController) Watch() {
 			fmt.Printf("error create new k8s client %s", err.Error())
 			panic(err.Error())
 		}
-		fmt.Printf("Watching Services ... \n")
-		result, err := clientset.CoreV1().Services(v1.NamespaceAll).List(ctx.TODO(), metav1.ListOptions{})
+
+		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 		if err != nil {
-			fmt.Printf("error listing services %s", err.Error())
+			fmt.Printf("error watching services %s", err.Error())
+			//panic(err.Error())
 		}
 
-		fmt.Printf("Services count : %d", len(result.Items))
-		// watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
-		// if err != nil {
-		// 	fmt.Printf("error watching services %s", err.Error())
-		// 	//panic(err.Error())
-		// }
+		fmt.Printf("Events count %d", len(watcher.ResultChan()))
+		for event := range watcher.ResultChan() {
+			svc := event.Object.(*v1.Service)
 
-		// fmt.Printf("Events count %d", len(watcher.ResultChan()))
-		// for event := range watcher.ResultChan() {
-		// 	svc := event.Object.(*v1.Service)
-
-		// 	switch event.Type {
-		// 	case watch.Added:
-		// 		fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-		// 	case watch.Modified:
-		// 		fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-		// 	case watch.Deleted:
-		// 		fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-		// 	}
-		// }
+			switch event.Type {
+			case watch.Added:
+				fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			case watch.Modified:
+				fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			case watch.Deleted:
+				fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			}
+		}
 	}
 }
 

@@ -21,34 +21,33 @@ type PodsController struct {
 
 func (c PodsController) Watch() {
 	fmt.Printf("Watching pods...")
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
 	for {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			panic(err.Error())
+		}
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			panic(err.Error())
+		}
 		watcher, err := clientset.CoreV1().Pods(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 		if err != nil {
 			panic(err.Error())
 		}
-		for {
-			for event := range watcher.ResultChan() {
-				svc := event.Object.(*v1.Pod)
 
-				switch event.Type {
-				case watch.Added:
-					fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				case watch.Modified:
-					fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				case watch.Deleted:
-					fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-				}
+		for event := range watcher.ResultChan() {
+			svc := event.Object.(*v1.Pod)
+
+			switch event.Type {
+			case watch.Added:
+				fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			case watch.Modified:
+				fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+			case watch.Deleted:
+				fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
 			}
 		}
+
 	}
 }
 

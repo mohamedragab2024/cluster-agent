@@ -8,5 +8,5 @@ type WatcherHanlder struct{}
 
 func (c WatcherHanlder) Handle() {
 	go (controllers.ServicesController{}).Watch()
-	//go (controllers.PodsController{}).Watch()
+	go (controllers.PodsController{}).Watch()
 }
