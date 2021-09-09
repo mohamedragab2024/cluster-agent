@@ -3,65 +3,52 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
+	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
+	CoreV1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
 type PodsController struct {
 }
 
 func (c PodsController) Watch() {
-	fmt.Printf("Watching pods...")
-	for {
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			panic(err.Error())
-		}
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			panic(err.Error())
-		}
-		watcher, err := clientset.CoreV1().Pods(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
-
-		for event := range watcher.ResultChan() {
-			svc := event.Object.(*v1.Pod)
-
-			switch event.Type {
-			case watch.Added:
-				fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			case watch.Modified:
-				fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			case watch.Deleted:
-				fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			}
-		}
-
+	var client utils.Client = *utils.NewClient()
+	watch, err := client.Clientset.CoreV1().Pods(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+	conn := utils.SocketConnection{
+		Host: os.Getenv("SERVER_ADDRESS"),
+	}.EstablishNewConnection()
+	go func() {
+		for event := range watch.ResultChan() {
+
+			obj, ok := event.Object.(*v1.Pod)
+			if !ok {
+				log.Fatal("unexpected type")
+			}
+			if err != nil {
+				log.Println("write:", err)
+				return
+			}
+			services.MonitoringService{}.PushEvent(conn, obj)
+		}
+		time.Sleep(30 * time.Second)
+	}()
 }
 
 func (c PodsController) GetOne(context echo.Context, nameSpaceName string, name string) error {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	result, err := clientset.CoreV1().Pods(nameSpaceName).Get(ctx.TODO(), name, metav1.GetOptions{})
+	var client utils.Client = *utils.NewClient()
+	result, err := client.Clientset.CoreV1().Pods(nameSpaceName).Get(ctx.TODO(), name, metav1.GetOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -75,16 +62,8 @@ func (c PodsController) GetOne(context echo.Context, nameSpaceName string, name 
 }
 
 func (c PodsController) Get(context echo.Context, nameSpaceName string) error {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	result, err := clientset.CoreV1().Pods(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{})
+	var client utils.Client = *utils.NewClient()
+	result, err := client.Clientset.CoreV1().Pods(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -98,14 +77,6 @@ func (c PodsController) Get(context echo.Context, nameSpaceName string) error {
 }
 
 func (c PodsController) Create(context echo.Context, nameSpaceName string, podConfig map[string]interface{}) error {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
 	pod := &v1.Pod{}
 	UnmarshalErr := json.Unmarshal(utils.MapToJson(podConfig), pod)
 	if UnmarshalErr != nil {
@@ -113,7 +84,8 @@ func (c PodsController) Create(context echo.Context, nameSpaceName string, podCo
 			Message: UnmarshalErr.Error(),
 		})
 	}
-	result, err := clientset.CoreV1().Pods(nameSpaceName).Create(ctx.TODO(), pod, metav1.CreateOptions{})
+	var client utils.Client = *utils.NewClient()
+	result, err := client.Clientset.CoreV1().Pods(nameSpaceName).Create(ctx.TODO(), pod, metav1.CreateOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -127,14 +99,6 @@ func (c PodsController) Create(context echo.Context, nameSpaceName string, podCo
 }
 
 func (c PodsController) Update(context echo.Context, nameSpaceName string, podConfig map[string]interface{}) error {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
 	pod := &v1.Pod{}
 	UnmarshalErr := json.Unmarshal(utils.MapToJson(podConfig), pod)
 	if UnmarshalErr != nil {
@@ -142,7 +106,8 @@ func (c PodsController) Update(context echo.Context, nameSpaceName string, podCo
 			Message: UnmarshalErr.Error(),
 		})
 	}
-	result, err := clientset.CoreV1().Pods(nameSpaceName).Update(ctx.TODO(), pod, metav1.UpdateOptions{})
+	var client utils.Client = *utils.NewClient()
+	result, err := client.Clientset.CoreV1().Pods(nameSpaceName).Update(ctx.TODO(), pod, metav1.UpdateOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -156,17 +121,9 @@ func (c PodsController) Update(context echo.Context, nameSpaceName string, podCo
 }
 
 func (c PodsController) Delete(context echo.Context, nameSpaceName string, name string) error {
-	config, err := rest.InClusterConfig()
+	var client utils.Client = *utils.NewClient()
+	err := client.Clientset.CoreV1().Pods(nameSpaceName).Delete(ctx.TODO(), name, metav1.DeleteOptions{})
 	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	deleteErr := clientset.CoreV1().Pods(nameSpaceName).Delete(ctx.TODO(), name, metav1.DeleteOptions{})
-	if deleteErr != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 		})

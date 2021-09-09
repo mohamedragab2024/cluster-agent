@@ -40,9 +40,8 @@ func handleRouting(e *echo.Echo) {
 }
 
 func main() {
-	serviceController := controllers.ServicesController{}
 	if os.Getenv("SERVER_ADDRESS") == "" {
-		os.Setenv("SERVER_ADDRESS", "104.210.210.9:8099")
+		os.Setenv("SERVER_ADDRESS", "127.0.0.1:8099")
 	}
 
 	if os.Getenv("CLIENT_ID") == "" {
@@ -67,7 +66,7 @@ func main() {
 	})
 
 	time.AfterFunc(10*time.Second, func() {
-		serviceController.Watch()
+		controllers.ServicesController{}.Watch()
 	})
 
 	e := echo.New()
