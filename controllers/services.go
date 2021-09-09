@@ -20,7 +20,7 @@ type ServicesController struct {
 }
 
 func (c ServicesController) Watch() {
-
+	fmt.Printf("Watching Services...")
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
