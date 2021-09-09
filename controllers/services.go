@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -34,25 +34,9 @@ func (c ServicesController) Watch() {
 			panic(err.Error())
 		}
 
-		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
-		if err != nil {
-			fmt.Printf("error watching services %s", err.Error())
-			//panic(err.Error())
-		}
-
-		fmt.Printf("Events count %d", len(watcher.ResultChan()))
-		for event := range watcher.ResultChan() {
-			svc := event.Object.(*v1.Service)
-
-			switch event.Type {
-			case watch.Added:
-				fmt.Printf("service %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			case watch.Modified:
-				fmt.Printf("service %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			case watch.Deleted:
-				fmt.Printf("service %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
-			}
-		}
+		result, err := clientset.CoreV1().Services(v1.NamespaceAll).List(ctx.TODO(), metav1.ListOptions{})
+		fmt.Printf("Services count : %d", len(result.Items))
+		time.Sleep(10 * time.Second)
 	}
 }
 
