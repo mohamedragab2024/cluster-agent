@@ -46,11 +46,11 @@ func (c ServicesController) Watch() {
 
 			switch event.Type {
 			case watch.Added:
-				fmt.Printf("pod %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				fmt.Printf("service %s/%s added", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
 			case watch.Modified:
-				fmt.Printf("pod %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				fmt.Printf("service %s/%s modified", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
 			case watch.Deleted:
-				fmt.Printf("pod %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
+				fmt.Printf("service %s/%s deleted", svc.ObjectMeta.Namespace, svc.ObjectMeta.Name)
 			}
 		}
 	}
