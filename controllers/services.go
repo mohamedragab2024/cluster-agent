@@ -4,6 +4,7 @@ import (
 	ctx "context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -28,18 +29,24 @@ func (c ServicesController) Watch() {
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		fmt.Printf("error create new k8s client %s", err.Error())
-		panic(err.Error())
+		fmt.Printf("error creating new client %s", err.Error())
 	}
-	for {
-
-		result, err := clientset.CoreV1().Services(v1.NamespaceAll).List(ctx.Background(), metav1.ListOptions{})
-		if err != nil {
-			fmt.Printf("failed to get services %s", err.Error())
+	watch, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	go func() {
+		for event := range watch.ResultChan() {
+			fmt.Printf("Type: %v\n", event.Type)
+			s, ok := event.Object.(*v1.Service)
+			if !ok {
+				log.Fatal("unexpected type")
+			}
+			fmt.Println("new service event ")
+			fmt.Println(s)
 		}
-		fmt.Printf("Services count : %d", len(result.Items))
-		time.Sleep(10 * time.Second)
-	}
+	}()
+	time.Sleep(5 * time.Second)
 }
 
 func (c ServicesController) GetOne(context echo.Context, nameSpaceName string, name string) error {

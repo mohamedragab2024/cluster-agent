@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	handlers "github.com/kube-carbonara/cluster-agent/handlers"
+	"github.com/kube-carbonara/cluster-agent/controllers"
 	routers "github.com/kube-carbonara/cluster-agent/routers"
 	"github.com/labstack/echo/v4"
 	"github.com/rancher/remotedialer"
@@ -40,7 +40,7 @@ func handleRouting(e *echo.Echo) {
 }
 
 func main() {
-	watcherHandler := handlers.WatcherHanlder{}
+	serviceController := controllers.ServicesController{}
 	if os.Getenv("SERVER_ADDRESS") == "" {
 		os.Setenv("SERVER_ADDRESS", "104.210.210.9:8099")
 	}
@@ -67,7 +67,7 @@ func main() {
 	})
 
 	time.AfterFunc(10*time.Second, func() {
-		watcherHandler.Handle()
+		serviceController.Watch()
 	})
 
 	e := echo.New()
