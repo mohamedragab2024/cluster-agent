@@ -34,7 +34,7 @@ func (c ServicesController) Watch() {
 
 	for {
 		fmt.Printf("Watching Services ... \n")
-		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
+		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 		if err != nil {
 			fmt.Printf("error watching services %s", err.Error())
 			panic(err.Error())
