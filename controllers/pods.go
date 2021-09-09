@@ -20,6 +20,7 @@ type PodsController struct {
 }
 
 func (c PodsController) Watch() {
+	fmt.Printf("Watching pods...")
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -36,7 +37,7 @@ func (c PodsController) Watch() {
 		}
 		for {
 			for event := range watcher.ResultChan() {
-				svc := event.Object.(*v1.Service)
+				svc := event.Object.(*v1.Pod)
 
 				switch event.Type {
 				case watch.Added:

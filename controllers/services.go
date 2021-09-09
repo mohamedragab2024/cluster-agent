@@ -31,8 +31,7 @@ func (c ServicesController) Watch() {
 	}
 
 	for {
-		fmt.Printf("Watching Services in ns-nginx ...")
-		watcher, err := clientset.CoreV1().Services("ns-nginx").Watch(ctx.Background(), metav1.ListOptions{})
+		watcher, err := clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.Background(), metav1.ListOptions{})
 		if err != nil {
 			panic(err.Error())
 		}
