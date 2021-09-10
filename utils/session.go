@@ -19,7 +19,7 @@ type Session struct {
 	mu      sync.Mutex
 }
 
-func (s *Session) newSession() {
+func (s *Session) NewSession() {
 	var addr = flag.String("addr", s.Host, "http service address")
 	flag.Parse()
 	log.SetFlags(0)
@@ -31,15 +31,13 @@ func (s *Session) newSession() {
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		log.Fatal("dial:", err)
-		return
+		os.Exit(0)
 	}
 	s.Conn = conn
 }
 
 func (s *Session) Send(message []byte) error {
-	if s.Conn == nil {
-		s.newSession()
-	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.Conn.WriteMessage(websocket.TextMessage, message)

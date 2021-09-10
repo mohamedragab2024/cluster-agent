@@ -62,7 +62,7 @@ func main() {
 		Host:    config.RemoteProxy,
 		Channel: "monitoring",
 	}
-
+	session.NewSession()
 	defer session.Conn.Close()
 	controllers.ServicesController{}.Watch(&session)
 	controllers.PodsController{}.Watch(&session)
