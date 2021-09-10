@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"time"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -16,9 +16,10 @@ type Session struct {
 	Host    string
 	Channel string
 	Conn    *websocket.Conn
+	mu      sync.Mutex
 }
 
-func (s Session) NewSession() (*Session, error) {
+func (s *Session) newSession() {
 	var addr = flag.String("addr", s.Host, "http service address")
 	flag.Parse()
 	log.SetFlags(0)
@@ -30,33 +31,16 @@ func (s Session) NewSession() (*Session, error) {
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		log.Fatal("dial:", err)
+		return
 	}
-	return &Session{
-		Host:    s.Host,
-		Conn:    conn,
-		Channel: s.Channel,
-	}, err
+	s.Conn = conn
 }
 
-func (s Session) Serv(timeout time.Duration) {
-	lastResponse := time.Now()
-	s.Conn.SetPongHandler(func(msg string) error {
-		lastResponse = time.Now()
-		return nil
-	})
-
-	go func() {
-		for {
-			err := s.Conn.WriteMessage(websocket.PingMessage, []byte("keepalive"))
-			if err != nil {
-				return
-			}
-			time.Sleep(timeout / 2)
-			if time.Since(lastResponse) > timeout {
-				s.Conn.Close()
-				os.Exit(3)
-				return
-			}
-		}
-	}()
+func (s *Session) Send(message []byte) error {
+	if s.Conn == nil {
+		s.newSession()
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Conn.WriteMessage(websocket.TextMessage, message)
 }

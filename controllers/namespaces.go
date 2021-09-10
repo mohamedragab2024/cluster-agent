@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -18,7 +17,7 @@ import (
 type NameSpacesController struct {
 }
 
-func (c NameSpacesController) Watch(wsConn *websocket.Conn) {
+func (c NameSpacesController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Namespaces().Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -39,7 +38,7 @@ func (c NameSpacesController) Watch(wsConn *websocket.Conn) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_NAMESPACES,
 				PayLoad:   obj,
-			}.PushEvent(wsConn)
+			}.PushEvent(session)
 		}
 		time.Sleep(30 * time.Second)
 	}()

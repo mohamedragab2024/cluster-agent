@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/kube-carbonara/cluster-agent/controllers"
@@ -59,23 +58,18 @@ func main() {
 
 	})
 
-	session, err := utils.Session{
+	session := utils.Session{
 		Host:    config.RemoteProxy,
 		Channel: "monitoring",
-	}.NewSession()
-
-	if err != nil {
-		logrus.Error(err)
-		os.Exit(3)
 	}
 
 	defer session.Conn.Close()
-	controllers.ServicesController{}.Watch(session.Conn)
-	controllers.PodsController{}.Watch(session.Conn)
-	controllers.DeploymentsController{}.Watch(session.Conn)
-	controllers.NameSpacesController{}.Watch(session.Conn)
-	controllers.NodesController{}.Watch(session.Conn)
-	controllers.IngressController{}.Watch(session.Conn)
+	controllers.ServicesController{}.Watch(&session)
+	controllers.PodsController{}.Watch(&session)
+	controllers.DeploymentsController{}.Watch(&session)
+	controllers.NameSpacesController{}.Watch(&session)
+	controllers.NodesController{}.Watch(&session)
+	controllers.IngressController{}.Watch(&session)
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {

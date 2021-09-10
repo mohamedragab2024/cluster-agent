@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -20,7 +19,7 @@ import (
 type IngressController struct {
 }
 
-func (c IngressController) Watch(wsConn *websocket.Conn) {
+func (c IngressController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Networkingv1client.Ingresses(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -42,7 +41,7 @@ func (c IngressController) Watch(wsConn *websocket.Conn) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_INGRESS,
 				PayLoad:   obj,
-			}.PushEvent(wsConn)
+			}.PushEvent(session)
 		}
 		time.Sleep(30 * time.Second)
 	}()

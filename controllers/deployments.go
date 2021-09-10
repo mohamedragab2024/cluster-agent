@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -19,7 +18,7 @@ import (
 
 type DeploymentsController struct{}
 
-func (c DeploymentsController) Watch(wsConn *websocket.Conn) {
+func (c DeploymentsController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.AppsV1().Deployments(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -41,7 +40,7 @@ func (c DeploymentsController) Watch(wsConn *websocket.Conn) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_INGRESS,
 				PayLoad:   obj,
-			}.PushEvent(wsConn)
+			}.PushEvent(session)
 		}
 		time.Sleep(30 * time.Second)
 	}()

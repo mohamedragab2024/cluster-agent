@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -19,7 +18,7 @@ import (
 type ServicesController struct {
 }
 
-func (c ServicesController) Watch(wsConn *websocket.Conn) {
+func (c ServicesController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -42,7 +41,7 @@ func (c ServicesController) Watch(wsConn *websocket.Conn) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_SERVICES,
 				PayLoad:   obj,
-			}.PushEvent(wsConn)
+			}.PushEvent(session)
 		}
 		time.Sleep(30 * time.Second)
 	}()
