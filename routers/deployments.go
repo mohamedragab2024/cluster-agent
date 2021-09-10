@@ -10,7 +10,7 @@ type DeploymentsRouter struct {
 }
 
 func (router DeploymentsRouter) Handle(e *echo.Echo) {
-	deploymentController := controllers.DeploymentsControllers{}
+	deploymentController := controllers.DeploymentsController{}
 	e.GET("/:ns/deployments", func(context echo.Context) error {
 		return deploymentController.Get(context, context.Param("ns"))
 	})
