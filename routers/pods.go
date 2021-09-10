@@ -12,7 +12,13 @@ type PodsRouter struct {
 func (router PodsRouter) Handle(e *echo.Echo) {
 	podsController := controllers.PodsController{}
 	e.GET("/:ns/pods", func(context echo.Context) error {
-		return podsController.Get(context, context.Param("ns"))
+		var ns string
+		if context.Param("ns") == "all" {
+			ns = ""
+		} else {
+			ns = context.Param("ns")
+		}
+		return podsController.Get(context, ns)
 	})
 
 	e.GET("/:ns/pods/:id", func(context echo.Context) error {

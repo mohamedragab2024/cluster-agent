@@ -13,7 +13,13 @@ func (router IngresRouter) Handle(e *echo.Echo) {
 	ingressController := controllers.IngressController{}
 
 	e.GET("/:ns/ingress", func(context echo.Context) error {
-		return ingressController.Get(context, context.Param("ns"))
+		var ns string
+		if context.Param("ns") == "all" {
+			ns = ""
+		} else {
+			ns = context.Param("ns")
+		}
+		return ingressController.Get(context, ns)
 	})
 
 	e.GET("/:ns/ingress/:id", func(context echo.Context) error {

@@ -12,7 +12,13 @@ type DeploymentsRouter struct {
 func (router DeploymentsRouter) Handle(e *echo.Echo) {
 	deploymentController := controllers.DeploymentsController{}
 	e.GET("/:ns/deployments", func(context echo.Context) error {
-		return deploymentController.Get(context, context.Param("ns"))
+		var ns string
+		if context.Param("ns") == "all" {
+			ns = ""
+		} else {
+			ns = context.Param("ns")
+		}
+		return deploymentController.Get(context, ns)
 	})
 
 	e.GET("/:ns/deployments/:id", func(context echo.Context) error {

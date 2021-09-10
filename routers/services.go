@@ -11,7 +11,13 @@ type SeviceRouter struct{}
 func (router SeviceRouter) Handle(e *echo.Echo) {
 	serviceController := controllers.ServicesController{}
 	e.GET("/:ns/services", func(context echo.Context) error {
-		return serviceController.Get(context, context.Param("ns"))
+		var ns string
+		if context.Param("ns") == "all" {
+			ns = ""
+		} else {
+			ns = context.Param("ns")
+		}
+		return serviceController.Get(context, ns)
 	})
 
 	e.GET("/:ns/services/:id", func(context echo.Context) error {
