@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -35,4 +36,27 @@ func (s Session) NewSession() (*Session, error) {
 		Conn:    conn,
 		Channel: s.Channel,
 	}, err
+}
+
+func (s Session) Serv(timeout time.Duration) {
+	lastResponse := time.Now()
+	s.Conn.SetPongHandler(func(msg string) error {
+		lastResponse = time.Now()
+		return nil
+	})
+
+	go func() {
+		for {
+			err := s.Conn.WriteMessage(websocket.PingMessage, []byte("keepalive"))
+			if err != nil {
+				return
+			}
+			time.Sleep(timeout / 2)
+			if time.Since(lastResponse) > timeout {
+				s.Conn.Close()
+				os.Exit(3)
+				return
+			}
+		}
+	}()
 }
