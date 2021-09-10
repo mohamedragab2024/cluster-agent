@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -20,15 +20,12 @@ import (
 type PodsController struct {
 }
 
-func (c PodsController) Watch() {
+func (c PodsController) Watch(conn *websocket.Conn) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Pods(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	conn := utils.SocketConnection{
-		Host: os.Getenv("SERVER_ADDRESS"),
-	}.EstablishNewConnection()
 	go func() {
 		for event := range watch.ResultChan() {
 

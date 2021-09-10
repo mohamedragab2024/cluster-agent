@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -19,19 +19,16 @@ import (
 
 type DeploymentsControllers struct{}
 
-func (c DeploymentsControllers) Watch() {
+func (c DeploymentsControllers) Watch(conn *websocket.Conn) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.AppsV1().Deployments(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	conn := utils.SocketConnection{
-		Host: os.Getenv("SERVER_ADDRESS"),
-	}.EstablishNewConnection()
 	go func() {
 		for event := range watch.ResultChan() {
 
-			obj, ok := event.Object.(*v1.Deployment)
+			svc, ok := event.Object.(*v1.Deployment)
 			if !ok {
 				log.Fatal("unexpected type")
 			}
@@ -39,10 +36,11 @@ func (c DeploymentsControllers) Watch() {
 				log.Println("write:", err)
 				return
 			}
-			services.MonitoringService{}.PushEvent(conn, obj)
+			services.MonitoringService{}.PushEvent(conn, svc)
 		}
 		time.Sleep(30 * time.Second)
 	}()
+
 }
 
 func (c DeploymentsControllers) GetOne(context echo.Context, nameSpaceName string, name string) error {

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -19,16 +19,15 @@ import (
 type ServicesController struct {
 }
 
-func (c ServicesController) Watch() {
+func (c ServicesController) Watch(wsConn *websocket.Conn) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	conn := utils.SocketConnection{
-		Host: os.Getenv("SERVER_ADDRESS"),
-	}.EstablishNewConnection()
+	done := make(chan struct{})
 	go func() {
+		defer close(done)
 		for event := range watch.ResultChan() {
 
 			svc, ok := event.Object.(*v1.Service)
@@ -39,7 +38,7 @@ func (c ServicesController) Watch() {
 				log.Println("write:", err)
 				return
 			}
-			services.MonitoringService{}.PushEvent(conn, svc)
+			services.MonitoringService{}.PushEvent(wsConn, svc)
 		}
 		time.Sleep(30 * time.Second)
 	}()
