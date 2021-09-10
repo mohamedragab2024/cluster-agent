@@ -69,7 +69,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	session.Serv(5 * time.Minute)
+	session.Serv(40 * time.Second)
 
 	defer session.Conn.Close()
 	controllers.ServicesController{}.Watch(session.Conn)
