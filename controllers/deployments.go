@@ -17,9 +17,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type DeploymentsControllers struct{}
+type DeploymentsController struct{}
 
-func (c DeploymentsControllers) Watch(wsConn *websocket.Conn) {
+func (c DeploymentsController) Watch(wsConn *websocket.Conn) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.AppsV1().Deployments(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -37,6 +37,7 @@ func (c DeploymentsControllers) Watch(wsConn *websocket.Conn) {
 				return
 			}
 			services.MonitoringService{
+				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_INGRESS,
 				PayLoad:   obj,
@@ -47,7 +48,7 @@ func (c DeploymentsControllers) Watch(wsConn *websocket.Conn) {
 
 }
 
-func (c DeploymentsControllers) GetOne(context echo.Context, nameSpaceName string, name string) error {
+func (c DeploymentsController) GetOne(context echo.Context, nameSpaceName string, name string) error {
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).Get(ctx.TODO(), name, metav1.GetOptions{})
 	if err != nil {
@@ -62,7 +63,7 @@ func (c DeploymentsControllers) GetOne(context echo.Context, nameSpaceName strin
 	})
 }
 
-func (c DeploymentsControllers) Get(context echo.Context, nameSpaceName string) error {
+func (c DeploymentsController) Get(context echo.Context, nameSpaceName string) error {
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -77,7 +78,7 @@ func (c DeploymentsControllers) Get(context echo.Context, nameSpaceName string) 
 	})
 }
 
-func (c DeploymentsControllers) Create(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
+func (c DeploymentsController) Create(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
 	deployment := &v1.Deployment{}
 	UnmarshalErr := json.Unmarshal(utils.MapToJson(deploymentConfig), deployment)
 	if UnmarshalErr != nil {
@@ -99,7 +100,7 @@ func (c DeploymentsControllers) Create(context echo.Context, nameSpaceName strin
 	})
 }
 
-func (c DeploymentsControllers) Update(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
+func (c DeploymentsController) Update(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
 	deployment := &v1.Deployment{}
 	UnmarshalErr := json.Unmarshal(utils.MapToJson(deploymentConfig), deployment)
 	if UnmarshalErr != nil {
@@ -122,7 +123,7 @@ func (c DeploymentsControllers) Update(context echo.Context, nameSpaceName strin
 	})
 }
 
-func (c DeploymentsControllers) Delete(context echo.Context, nameSpaceName string, name string) error {
+func (c DeploymentsController) Delete(context echo.Context, nameSpaceName string, name string) error {
 	var client utils.Client = *utils.NewClient()
 	err := client.Clientset.AppsV1().Deployments(nameSpaceName).Delete(ctx.TODO(), name, metav1.DeleteOptions{})
 	if err != nil {

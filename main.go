@@ -71,6 +71,11 @@ func main() {
 
 	defer session.Conn.Close()
 	controllers.ServicesController{}.Watch(session.Conn)
+	controllers.PodsController{}.Watch(session.Conn)
+	controllers.DeploymentsController{}.Watch(session.Conn)
+	controllers.NameSpacesController{}.Watch(session.Conn)
+	controllers.NodesController{}.Watch(session.Conn)
+	controllers.IngressController{}.Watch(session.Conn)
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {

@@ -38,6 +38,7 @@ func (c PodsController) Watch(wsConn *websocket.Conn) {
 				return
 			}
 			services.MonitoringService{
+				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_PODS,
 				PayLoad:   obj,
