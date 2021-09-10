@@ -20,7 +20,7 @@ import (
 type IngressController struct {
 }
 
-func (c IngressController) Watch(conn *websocket.Conn) {
+func (c IngressController) Watch(wsConn *websocket.Conn) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Networkingv1client.Ingresses(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -37,7 +37,11 @@ func (c IngressController) Watch(conn *websocket.Conn) {
 				log.Println("write:", err)
 				return
 			}
-			services.MonitoringService{}.PushEvent(conn, obj)
+			services.MonitoringService{
+				EventName: string(event.Type),
+				Resource:  utils.RESOUCETYPE_INGRESS,
+				PayLoad:   obj,
+			}.PushEvent(wsConn)
 		}
 		time.Sleep(30 * time.Second)
 	}()

@@ -19,7 +19,7 @@ import (
 
 type DeploymentsControllers struct{}
 
-func (c DeploymentsControllers) Watch(conn *websocket.Conn) {
+func (c DeploymentsControllers) Watch(wsConn *websocket.Conn) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.AppsV1().Deployments(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -28,7 +28,7 @@ func (c DeploymentsControllers) Watch(conn *websocket.Conn) {
 	go func() {
 		for event := range watch.ResultChan() {
 
-			svc, ok := event.Object.(*v1.Deployment)
+			obj, ok := event.Object.(*v1.Deployment)
 			if !ok {
 				log.Fatal("unexpected type")
 			}
@@ -36,7 +36,11 @@ func (c DeploymentsControllers) Watch(conn *websocket.Conn) {
 				log.Println("write:", err)
 				return
 			}
-			services.MonitoringService{}.PushEvent(conn, svc)
+			services.MonitoringService{
+				EventName: string(event.Type),
+				Resource:  utils.RESOUCETYPE_INGRESS,
+				PayLoad:   obj,
+			}.PushEvent(wsConn)
 		}
 		time.Sleep(30 * time.Second)
 	}()

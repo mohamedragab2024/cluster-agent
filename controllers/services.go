@@ -30,7 +30,7 @@ func (c ServicesController) Watch(wsConn *websocket.Conn) {
 		defer close(done)
 		for event := range watch.ResultChan() {
 
-			svc, ok := event.Object.(*v1.Service)
+			obj, ok := event.Object.(*v1.Service)
 			if !ok {
 				log.Fatal("unexpected type")
 			}
@@ -38,7 +38,11 @@ func (c ServicesController) Watch(wsConn *websocket.Conn) {
 				log.Println("write:", err)
 				return
 			}
-			services.MonitoringService{}.PushEvent(wsConn, svc)
+			services.MonitoringService{
+				EventName: string(event.Type),
+				Resource:  utils.RESOUCETYPE_SERVICES,
+				PayLoad:   obj,
+			}.PushEvent(wsConn)
 		}
 		time.Sleep(30 * time.Second)
 	}()

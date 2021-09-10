@@ -18,7 +18,7 @@ import (
 type NameSpacesController struct {
 }
 
-func (c NameSpacesController) Watch(conn *websocket.Conn) {
+func (c NameSpacesController) Watch(wsConn *websocket.Conn) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Namespaces().Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -35,7 +35,11 @@ func (c NameSpacesController) Watch(conn *websocket.Conn) {
 				log.Println("write:", err)
 				return
 			}
-			services.MonitoringService{}.PushEvent(conn, obj)
+			services.MonitoringService{
+				EventName: string(event.Type),
+				Resource:  utils.RESOUCETYPE_NAMESPACES,
+				PayLoad:   obj,
+			}.PushEvent(wsConn)
 		}
 		time.Sleep(30 * time.Second)
 	}()

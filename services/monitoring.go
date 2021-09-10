@@ -7,10 +7,15 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type MonitoringService struct{}
+type MonitoringService struct {
+	Resource  string
+	EventName string
+	PayLoad   interface{}
+}
 
-func (m MonitoringService) PushEvent(wsConn *websocket.Conn, data interface{}) {
-	msg, _ := json.Marshal(data)
+func (m MonitoringService) PushEvent(wsConn *websocket.Conn) {
+
+	msg, _ := json.Marshal(m)
 	err := wsConn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		log.Println("write:", err)

@@ -59,16 +59,17 @@ func main() {
 
 	})
 
-	wsConn, err := utils.SocketConnection{
-		Host: config.RemoteProxy,
-	}.EstablishNewConnection("monitoring")
+	session, err := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}.NewSession()
 
 	if err != nil {
 		logrus.Error(err)
 		os.Exit(3)
 	}
-	defer wsConn.Close()
-	controllers.ServicesController{}.Watch(wsConn)
+	defer session.Conn.Close()
+	controllers.ServicesController{}.Watch(session.Conn)
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {
