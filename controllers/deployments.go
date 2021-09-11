@@ -38,7 +38,7 @@ func (c DeploymentsController) Watch(session *utils.Session) {
 			services.MonitoringService{
 				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
-				Resource:  utils.RESOUCETYPE_INGRESS,
+				Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
 				PayLoad:   obj,
 			}.PushEvent(session)
 		}
