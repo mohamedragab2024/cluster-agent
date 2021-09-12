@@ -3,6 +3,7 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -34,6 +35,7 @@ func (c ServicesController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
+		fmt.Print(err.Error())
 		log.Fatal(err.Error())
 	}
 	done := make(chan struct{})
