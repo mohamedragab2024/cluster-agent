@@ -17,6 +17,18 @@ import (
 
 type NodesController struct{}
 
+func (c NodesController) WatchTest(session *utils.Session) {
+	go func() {
+
+		for {
+			services.MonitoringService{}.PushEvent(session)
+			time.Sleep(30 * time.Second)
+		}
+
+	}()
+
+}
+
 func (c NodesController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Nodes().Watch(ctx.TODO(), metav1.ListOptions{})

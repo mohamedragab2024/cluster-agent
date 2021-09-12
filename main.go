@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/kube-carbonara/cluster-agent/controllers"
@@ -64,12 +65,23 @@ func main() {
 	}
 	session.NewSession()
 	defer session.Conn.Close()
-	controllers.ServicesController{}.Watch(&session)
-	controllers.PodsController{}.Watch(&session)
-	controllers.DeploymentsController{}.Watch(&session)
-	controllers.NameSpacesController{}.Watch(&session)
-	controllers.NodesController{}.Watch(&session)
-	controllers.IngressController{}.Watch(&session)
+	if os.Getenv("DEBUG") != "" {
+		controllers.ServicesController{}.WatchTest(&session)
+		controllers.PodsController{}.WatchTest(&session)
+		controllers.DeploymentsController{}.WatchTest(&session)
+		controllers.NameSpacesController{}.WatchTest(&session)
+		controllers.NodesController{}.WatchTest(&session)
+		controllers.IngressController{}.WatchTest(&session)
+
+	} else {
+		controllers.ServicesController{}.Watch(&session)
+		controllers.PodsController{}.Watch(&session)
+		controllers.DeploymentsController{}.Watch(&session)
+		controllers.NameSpacesController{}.Watch(&session)
+		controllers.NodesController{}.Watch(&session)
+		controllers.IngressController{}.Watch(&session)
+
+	}
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {

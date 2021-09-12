@@ -18,6 +18,18 @@ import (
 type ServicesController struct {
 }
 
+func (c ServicesController) WatchTest(session *utils.Session) {
+	go func() {
+
+		for {
+			services.MonitoringService{}.PushEvent(session)
+			time.Sleep(30 * time.Second)
+		}
+
+	}()
+
+}
+
 func (c ServicesController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})

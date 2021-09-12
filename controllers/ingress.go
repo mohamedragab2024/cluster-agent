@@ -19,6 +19,18 @@ import (
 type IngressController struct {
 }
 
+func (c IngressController) WatchTest(session *utils.Session) {
+	go func() {
+
+		for {
+			services.MonitoringService{}.PushEvent(session)
+			time.Sleep(30 * time.Second)
+		}
+
+	}()
+
+}
+
 func (c IngressController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Networkingv1client.Ingresses(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})

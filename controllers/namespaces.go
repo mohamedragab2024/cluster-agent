@@ -17,6 +17,18 @@ import (
 type NameSpacesController struct {
 }
 
+func (c NameSpacesController) WatchTest(session *utils.Session) {
+	go func() {
+
+		for {
+			services.MonitoringService{}.PushEvent(session)
+			time.Sleep(30 * time.Second)
+		}
+
+	}()
+
+}
+
 func (c NameSpacesController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Namespaces().Watch(ctx.TODO(), metav1.ListOptions{})

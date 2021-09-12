@@ -19,6 +19,18 @@ import (
 type PodsController struct {
 }
 
+func (c PodsController) WatchTest(session *utils.Session) {
+	go func() {
+
+		for {
+			services.MonitoringService{}.PushEvent(session)
+			time.Sleep(30 * time.Second)
+		}
+
+	}()
+
+}
+
 func (c PodsController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Pods(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
