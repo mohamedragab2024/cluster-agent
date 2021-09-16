@@ -21,7 +21,7 @@ func (router PodsRouter) Handle(e *echo.Echo) {
 		return podsController.Get(context, ns)
 	})
 
-	e.GET("/pods/metrics", func(context echo.Context) error {
+	e.GET("/podsmetrics", func(context echo.Context) error {
 		return podsController.Metrics(context)
 	})
 

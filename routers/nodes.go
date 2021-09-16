@@ -14,7 +14,7 @@ func (router NodesRouter) Handle(e *echo.Echo) {
 		return nodesController.Get(context)
 	})
 
-	e.GET("/nodes/metrics", func(context echo.Context) error {
+	e.GET("/nodesmetrics", func(context echo.Context) error {
 		return nodesController.Metrics(context)
 	})
 
