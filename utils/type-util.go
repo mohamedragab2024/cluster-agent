@@ -44,3 +44,11 @@ func JsonBodyToMap(this io.ReadCloser) (Newobj map[string]interface{}) {
 	}
 	return
 }
+
+func JsonToMap(this []byte) (Newobj map[string]interface{}) {
+	err := json.Unmarshal(this, &Newobj)
+	if err != nil {
+		return
+	}
+	return
+}

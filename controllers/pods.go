@@ -19,6 +19,24 @@ import (
 type PodsController struct {
 }
 
+func (c PodsController) Metrics(context echo.Context) error {
+	var response map[string]interface{}
+	var client utils.Client = *utils.NewClient()
+	result, err := client.Clientset.RESTClient().Get().AbsPath("apis/metrics.k8s.io/v1beta1/pods").DoRaw(ctx.TODO())
+
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	json.Unmarshal(result, &response)
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(response),
+		ResourceType: utils.RESOUCETYPE_NODES,
+	})
+}
+
 func (c PodsController) WatchTest(session *utils.Session) {
 	go func() {
 

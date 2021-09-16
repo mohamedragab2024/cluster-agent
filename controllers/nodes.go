@@ -56,6 +56,24 @@ func (c NodesController) Watch(session *utils.Session) {
 	}()
 }
 
+func (c NodesController) Metrics(context echo.Context) error {
+	var response map[string]interface{}
+	var client utils.Client = *utils.NewClient()
+	result, err := client.Clientset.RESTClient().Get().AbsPath("apis/metrics.k8s.io/v1beta1/nodes").DoRaw(ctx.TODO())
+
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	json.Unmarshal(result, &response)
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(response),
+		ResourceType: utils.RESOUCETYPE_NODES,
+	})
+}
+
 func (c NodesController) GetOne(context echo.Context, name string) error {
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.CoreV1().Nodes().Get(ctx.TODO(), name, metav1.GetOptions{})
