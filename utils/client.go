@@ -11,6 +11,7 @@ import (
 type Client struct {
 	Clientset          *kubernetes.Clientset
 	Networkingv1client *networkingv1client.NetworkingV1Client
+	Rest               *rest.RESTClient
 }
 
 func NewClient() *Client {
@@ -21,6 +22,7 @@ func NewClient() *Client {
 	}
 	clientset, _ := kubernetes.NewForConfig(config)
 	ntClient, _ := networkingv1client.NewForConfig(config)
+	rest, _ := rest.RESTClientFor(config)
 	if err != nil {
 		fmt.Print(err.Error())
 		panic(err.Error())
@@ -28,5 +30,6 @@ func NewClient() *Client {
 	return &Client{
 		Clientset:          clientset,
 		Networkingv1client: ntClient,
+		Rest:               rest,
 	}
 }

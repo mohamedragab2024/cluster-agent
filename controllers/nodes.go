@@ -59,7 +59,7 @@ func (c NodesController) Watch(session *utils.Session) {
 func (c NodesController) Metrics(context echo.Context) error {
 	var response map[string]interface{}
 	var client utils.Client = *utils.NewClient()
-	result, err := client.Clientset.RESTClient().Get().AbsPath("apis/metrics.k8s.io/v1beta1/nodes").DoRaw(ctx.TODO())
+	result, err := client.Rest.Get().AbsPath("apis/metrics.k8s.io/v1beta1/nodes").DoRaw(ctx.TODO())
 
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
