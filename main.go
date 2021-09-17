@@ -46,7 +46,7 @@ func main() {
 	config := utils.NewConfig()
 	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", config.RemoteProxy), "Address to connect to")
 	flag.StringVar(&id, "id", config.ClientId, "Client ID")
-	flag.StringVar(&id, "id", config.AppKey, "App Key")
+	flag.StringVar(&appKey, "appKey", config.AppKey, "App Key")
 	flag.BoolVar(&debug, "debug", true, "Debug logging")
 	flag.Parse()
 
