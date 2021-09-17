@@ -22,7 +22,13 @@ func (router PodsRouter) Handle(e *echo.Echo) {
 	})
 
 	e.GET("/podsmetrics", func(context echo.Context) error {
-		return podsController.Metrics(context)
+		var ns string
+		if context.Param("ns") == "all" {
+			ns = ""
+		} else {
+			ns = context.Param("ns")
+		}
+		return podsController.Metrics(context, ns)
 	})
 
 	e.GET("/:ns/pods/:id", func(context echo.Context) error {

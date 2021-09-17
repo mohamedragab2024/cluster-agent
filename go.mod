@@ -16,8 +16,10 @@ require (
 	github.com/rancher/remotedialer v0.2.5
 	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a // indirect
+	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	k8s.io/api v0.22.1 // indirect
 	k8s.io/apimachinery v0.22.1
 	k8s.io/client-go v0.22.1
 	k8s.io/klog v0.3.1 // indirect
+	k8s.io/metrics v0.22.1 // indirect
 )
