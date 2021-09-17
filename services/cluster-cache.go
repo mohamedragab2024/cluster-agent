@@ -40,7 +40,7 @@ func (c ClusterCacheService) PushMetricsUpdates() {
 	}
 	r.Header.Add("Content-Type", "application/json; charset=utf-8")
 	r.Header.Add("x-agent", config.ClientId)
-	r.Header.Add("x-agent-app-key", config.ClientId)
+	r.Header.Add("x-agent-app-key", config.AppKey)
 	resp, _ := client.Do(r)
 	if err != nil {
 		log.Println("write:", err)
