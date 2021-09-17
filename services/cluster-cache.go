@@ -18,7 +18,11 @@ import (
 type ClusterCacheService struct{}
 
 func (c ClusterCacheService) PushMetricsUpdates() {
-	metrics := c.ClusterMetrics()
+	metrics, err := c.ClusterMetrics()
+	if err != nil {
+		log.Println("write:", err)
+		return
+	}
 	fmt.Print("Update cluster metrics cache ...", metrics)
 
 	jsonReq, err := json.Marshal(metrics)
@@ -43,23 +47,23 @@ func (c ClusterCacheService) PushMetricsUpdates() {
 
 }
 
-func (c ClusterCacheService) ClusterMetrics() (rows models.ClusterMetricsCache) {
+func (c ClusterCacheService) ClusterMetrics() (models.ClusterMetricsCache, error) {
 	var client utils.Client = *utils.NewClient()
 	metrics, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Println("write:", err)
-		return
+		return models.ClusterMetricsCache{}, err
 	}
 	nodes, err := client.Clientset.CoreV1().Nodes().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Println("write:", err)
-		return
+		return models.ClusterMetricsCache{}, err
 	}
-	ClusterRowMetrics := RowClusterMetrics(metrics.Items, nodes.Items)
-	return ClusterRowMetrics
+	ClusterRowMetrics := c.RowClusterMetrics(metrics.Items, nodes.Items)
+	return ClusterRowMetrics, nil
 }
 
-func RowClusterMetrics(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows models.ClusterMetricsCache) {
+func (c ClusterCacheService) RowClusterMetrics(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows models.ClusterMetricsCache) {
 	var row models.ClusterMetricsCache
 	if len(nodes) > 0 {
 		var totalCpuCores int64 = 0
