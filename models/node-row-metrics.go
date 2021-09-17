@@ -2,8 +2,8 @@ package models
 
 type NodeRowMetrics struct {
 	Name                    string `json:"name"`
-	TotalCpuCors            string `json:"totalCpuCors"`
-	CpuUsageCors            string `json:"cpuUsageCors"`
+	TotalCpuCores           string `json:"totalCpuCores"`
+	CpuUsageCores           string `json:"cpuUsageCores"`
 	CpuUsagePercentage      string `json:"cpuUsagePercentage"`
 	MemoryUsage             string `json:"memoryUsage"`
 	TotalMemory             string `json:"totalMemory"`
