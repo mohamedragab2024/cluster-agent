@@ -16,6 +16,7 @@ import (
 type MetricsController struct{}
 
 func (c MetricsController) NodeMetrics(context echo.Context) error {
+	fmt.Print("Getting metrics for nodes")
 	var client utils.Client = *utils.NewClient()
 	result, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
