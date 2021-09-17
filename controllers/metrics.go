@@ -38,6 +38,7 @@ func (c MetricsController) NodeMetrics(context echo.Context) error {
 func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRowMetrics) {
 	for k, v := range nodes {
 		var row models.NodeRowMetrics
+		row.Name = v.ObjectMeta.Name
 		row.Architecture = v.Status.NodeInfo.Architecture
 		row.ContainerRuntimeVersion = v.Status.NodeInfo.ContainerRuntimeVersion
 		row.KubeletVersion = v.Status.NodeInfo.KubeProxyVersion
@@ -47,10 +48,11 @@ func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRo
 			row.IpAddress = v.Status.Addresses[0].Address
 			row.HostName = v.Status.Addresses[1].Address
 		}
-		row.TotalCpuCors = fmt.Sprintf("%vm", v.Status.Allocatable.Cpu().MilliValue())
-		row.TotalMemory = fmt.Sprintf("%vMi", v.Status.Allocatable.Memory().MilliValue())
-		row.CpuUsageCors = fmt.Sprintf("%vm", metrics[k].Usage.Cpu().MilliValue())
-		row.MemoryUsage = fmt.Sprintf("%vMi", metrics[k].Usage.Memory().MilliValue())
+		row.TotalCpuCors = fmt.Sprintf("%v m", v.Status.Allocatable.Cpu().MilliValue())
+		row.CpuUsageCors = fmt.Sprintf("%v m", metrics[k].Usage.Cpu().MilliValue())
+		row.CpuUsagePercentage = fmt.Sprintf("%v %%", metrics[k].Usage.Cpu().MilliValue()*100/v.Status.Allocatable.Cpu().MilliValue())
+		row.TotalMemory = fmt.Sprintf("%v Mi", v.Status.Allocatable.Memory().Value()/1024^2)
+		row.MemoryUsage = fmt.Sprintf("%v Mi", metrics[k].Usage.Memory().Value()/1024^2)
 		rows = append(rows, row)
 	}
 
