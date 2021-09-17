@@ -65,11 +65,11 @@ func RowNodeMetrics(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []mode
 			row.HostName = v.Status.Addresses[1].Address
 		}
 
-		row.TotalCpuCores = fmt.Sprintf("%vm", v.Status.Allocatable.Cpu().MilliValue())
-		row.CpuUsageCores = fmt.Sprintf("%vm", metrics[k].Usage.Cpu().MilliValue())
+		row.TotalCpuCores = v.Status.Allocatable.Cpu().MilliValue()
+		row.CpuUsageCores = metrics[k].Usage.Cpu().MilliValue()
 		row.CpuUsagePercentage = fmt.Sprintf("%v%%", metrics[k].Usage.Cpu().MilliValue()*100/v.Status.Allocatable.Cpu().MilliValue())
-		row.TotalMemory = fmt.Sprintf("%vMi", v.Status.Allocatable.Memory().Value()/(1024*1024))
-		row.MemoryUsage = fmt.Sprintf("%vMi", metrics[k].Usage.Memory().Value()/(1024*1024))
+		row.TotalMemory = v.Status.Allocatable.Memory().Value() / (1024 * 1024)
+		row.MemoryUsage = metrics[k].Usage.Memory().Value() / (1024 * 1024)
 		row.MemoryUsagePercentage = fmt.Sprintf("%v%%", (metrics[k].Usage.Memory().MilliValue()/(1024*1024))*100/(v.Status.Allocatable.Memory().MilliValue()/(1024*1024)))
 		rows = append(rows, row)
 	}
@@ -93,10 +93,10 @@ func RowClusterMetrics(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows mod
 			totalNodes++
 		}
 
-		row.TotalCpuCores = fmt.Sprintf("%vm", totalCpuCores)
-		row.TotalCpuUsage = fmt.Sprintf("%vm", totalCpuUsage)
-		row.TotalMemory = fmt.Sprintf("%vMi", totalMemory)
-		row.TotalMemoryUsage = fmt.Sprintf("%vMi", totalMemoryUsage)
+		row.TotalCpuCores = totalCpuCores
+		row.TotalCpuUsage = totalCpuUsage
+		row.TotalMemory = totalMemory
+		row.TotalMemoryUsage = totalMemoryUsage
 		row.Provider = nodes[0].Status.NodeInfo.KubeProxyVersion
 		row.NodesCount = totalNodes
 		row.CpuPercentage = fmt.Sprintf("%v%%", totalCpuUsage*100/totalCpuCores)

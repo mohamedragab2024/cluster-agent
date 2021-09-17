@@ -82,10 +82,10 @@ func (c ClusterCacheService) RowClusterMetrics(metrics []v1beta1.NodeMetrics, no
 			totalNodes++
 		}
 
-		row.TotalCpuCores = fmt.Sprintf("%vm", totalCpuCores)
-		row.TotalCpuUsage = fmt.Sprintf("%vm", totalCpuUsage)
-		row.TotalMemory = fmt.Sprintf("%vMi", totalMemory)
-		row.TotalMemoryUsage = fmt.Sprintf("%vMi", totalMemoryUsage)
+		row.TotalCpuCores = totalCpuCores
+		row.TotalCpuUsage = totalCpuUsage
+		row.TotalMemory = totalMemory
+		row.TotalMemoryUsage = totalMemoryUsage
 		row.Provider = nodes[0].Status.NodeInfo.KubeProxyVersion
 		row.NodesCount = totalNodes
 		row.CpuPercentage = fmt.Sprintf("%v%%", totalCpuUsage*100/totalCpuCores)
