@@ -48,11 +48,12 @@ func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRo
 			row.IpAddress = v.Status.Addresses[0].Address
 			row.HostName = v.Status.Addresses[1].Address
 		}
+
 		row.TotalCpuCores = fmt.Sprintf("%vm", v.Status.Allocatable.Cpu().MilliValue())
 		row.CpuUsageCores = fmt.Sprintf("%vm", metrics[k].Usage.Cpu().MilliValue())
 		row.CpuUsagePercentage = fmt.Sprintf("%v%%", metrics[k].Usage.Cpu().MilliValue()*100/v.Status.Allocatable.Cpu().MilliValue())
-		row.TotalMemory = fmt.Sprintf("%vMi", (v.Status.Allocatable.Memory().MilliValue() / (1024 * 1024)))
-		row.MemoryUsage = fmt.Sprintf("%vMi", (metrics[k].Usage.Memory().MilliValue() / (1024 * 1024)))
+		row.TotalMemory = fmt.Sprintf("%vMi", v.Status.Allocatable.Memory().Value()/(1024*1024))
+		row.MemoryUsage = fmt.Sprintf("%vMi", metrics[k].Usage.Memory().Value()/(1024*1024))
 		row.MemoryUsagePercentage = fmt.Sprintf("%v%%", (metrics[k].Usage.Memory().MilliValue()/(1024*1024))*100/(v.Status.Allocatable.Memory().MilliValue()/(1024*1024)))
 		rows = append(rows, row)
 	}
