@@ -18,8 +18,9 @@ import (
 type ClusterCacheService struct{}
 
 func (c ClusterCacheService) PushMetricsUpdates() {
-
 	metrics := c.ClusterMetrics()
+	fmt.Print("Update cluster metrics cache ...", metrics)
+
 	jsonReq, err := json.Marshal(metrics)
 	if err != nil {
 		log.Println("write:", err)
@@ -27,7 +28,11 @@ func (c ClusterCacheService) PushMetricsUpdates() {
 	}
 
 	client := &http.Client{}
-	r, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("http://%s/clusters/%s", utils.NewConfig().RemoteProxy, utils.NewConfig().ClientId), bytes.NewBuffer(jsonReq))
+	r, err := http.NewRequest(http.MethodPut, fmt.Sprintf("http://%s/clusters/%s", utils.NewConfig().RemoteProxy, utils.NewConfig().ClientId), bytes.NewBuffer(jsonReq))
+	if err != nil {
+		log.Println("write:", err)
+		return
+	}
 	r.Header.Add("Content-Type", "application/json; charset=utf-8")
 	resp, _ := client.Do(r)
 	if err != nil {
