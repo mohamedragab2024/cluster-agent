@@ -9,8 +9,10 @@ type MetricsRouter struct{}
 
 func (router MetricsRouter) Handle(e *echo.Echo) {
 	metricsController := controllers.MetricsController{}
-	e.GET("/nodemetrics", func(context echo.Context) error {
+
+	e.GET("/metrics/:resource", func(context echo.Context) error {
 		return metricsController.NodeMetrics(context)
+
 	})
 
 }

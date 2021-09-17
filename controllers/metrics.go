@@ -32,10 +32,7 @@ func (c MetricsController) NodeMetrics(context echo.Context) error {
 	}
 	nodeRowMetrics := ToRow(metrics.Items, nodes.Items)
 	fmt.Print("metrics: ", nodeRowMetrics)
-	return context.JSON(http.StatusOK, models.Response{
-		Data:         utils.StructToMap(nodeRowMetrics),
-		ResourceType: utils.RESOUCETYPE_NODES,
-	})
+	return context.JSON(http.StatusOK, nodeRowMetrics)
 }
 
 func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRowMetrics) {
