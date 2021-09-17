@@ -39,6 +39,8 @@ func (c NodesController) Watch(session *utils.Session) {
 				Resource:  utils.RESOUCETYPE_NODES,
 				PayLoad:   obj,
 			}.PushEvent(session)
+
+			services.ClusterCacheService{}.PushMetricsUpdates()
 		}
 		time.Sleep(30 * time.Second)
 	}()

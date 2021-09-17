@@ -17,7 +17,7 @@ type MonitoringService struct {
 
 func (m MonitoringService) PushEvent(session *utils.Session) {
 
-	m.ClusterId = utils.NewConfig().RemoteProxy
+	m.ClusterId = utils.NewConfig().ClientId
 	msg, _ := json.Marshal(m)
 	err := session.Send(msg)
 	if err != nil {

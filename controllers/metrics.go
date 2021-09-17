@@ -16,7 +16,6 @@ import (
 type MetricsController struct{}
 
 func (c MetricsController) NodeMetrics(context echo.Context) error {
-	fmt.Print("Getting metrics for nodes")
 	var client utils.Client = *utils.NewClient()
 	metrics, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -30,12 +29,29 @@ func (c MetricsController) NodeMetrics(context echo.Context) error {
 			Message: err.Error(),
 		})
 	}
-	nodeRowMetrics := ToRow(metrics.Items, nodes.Items)
-	fmt.Print("metrics: ", nodeRowMetrics)
+	nodeRowMetrics := RowNodeMetrics(metrics.Items, nodes.Items)
 	return context.JSON(http.StatusOK, nodeRowMetrics)
 }
 
-func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRowMetrics) {
+func (c MetricsController) ClusterMetrics(context echo.Context) error {
+	var client utils.Client = *utils.NewClient()
+	metrics, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+	nodes, err := client.Clientset.CoreV1().Nodes().List(ctx.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+	ClusterRowMetrics := RowClusterMetrics(metrics.Items, nodes.Items)
+	return context.JSON(http.StatusOK, ClusterRowMetrics)
+}
+
+func RowNodeMetrics(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRowMetrics) {
 	for k, v := range nodes {
 		var row models.NodeRowMetrics
 		row.Name = v.ObjectMeta.Name
@@ -59,4 +75,33 @@ func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRo
 	}
 
 	return
+}
+
+func RowClusterMetrics(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows models.ClusterMetricsCache) {
+	var row models.ClusterMetricsCache
+	if len(nodes) > 0 {
+		var totalCpuCores int64 = 0
+		var totalCpuUsage int64 = 0
+		var totalMemory int64 = 0
+		var totalMemoryUsage int64 = 0
+		var totalNodes int64 = 0
+		for k, v := range nodes {
+			totalCpuCores += v.Status.Allocatable.Cpu().MilliValue()
+			totalCpuUsage += metrics[k].Usage.Cpu().MilliValue()
+			totalMemory += v.Status.Allocatable.Memory().Value() / (1024 * 1024)
+			totalMemoryUsage += metrics[k].Usage.Memory().Value() / (1024 * 1024)
+			totalNodes++
+		}
+
+		row.TotalCpuCores = fmt.Sprintf("%vm", totalCpuCores)
+		row.TotalCpuUsage = fmt.Sprintf("%vm", totalCpuUsage)
+		row.TotalMemory = fmt.Sprintf("%vMi", totalMemory)
+		row.TotalMemoryUsage = fmt.Sprintf("%vMi", totalMemoryUsage)
+		row.Provider = nodes[0].Status.NodeInfo.KubeProxyVersion
+		row.NodesCount = totalNodes
+		row.CpuPercentage = fmt.Sprintf("%v%%", totalCpuUsage*100/totalCpuCores)
+		row.MemoryPercentage = fmt.Sprintf("%v%%", totalMemoryUsage*100/totalMemory)
+	}
+
+	return row
 }

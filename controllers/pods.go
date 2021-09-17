@@ -41,6 +41,7 @@ func (c PodsController) Watch(session *utils.Session) {
 				Resource:  utils.RESOUCETYPE_PODS,
 				PayLoad:   obj,
 			}.PushEvent(session)
+			services.ClusterCacheService{}.PushMetricsUpdates()
 		}
 		time.Sleep(30 * time.Second)
 	}()

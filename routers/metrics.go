@@ -2,6 +2,7 @@ package routers
 
 import (
 	controllers "github.com/kube-carbonara/cluster-agent/controllers"
+	"github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
 )
 
@@ -11,7 +12,19 @@ func (router MetricsRouter) Handle(e *echo.Echo) {
 	metricsController := controllers.MetricsController{}
 
 	e.GET("/metrics/:resource", func(context echo.Context) error {
-		return metricsController.NodeMetrics(context)
+		switch context.Param("resource") {
+		case utils.RESOUCETYPE_NODES:
+			{
+				return metricsController.NodeMetrics(context)
+
+			}
+		default:
+			{
+				return metricsController.ClusterMetrics(context)
+
+			}
+
+		}
 
 	})
 
