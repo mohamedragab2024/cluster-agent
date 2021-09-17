@@ -18,7 +18,7 @@ type MetricsController struct{}
 func (c MetricsController) NodeMetrics(context echo.Context) error {
 	fmt.Print("Getting metrics for nodes")
 	var client utils.Client = *utils.NewClient()
-	result, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
+	metrics, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
@@ -30,7 +30,7 @@ func (c MetricsController) NodeMetrics(context echo.Context) error {
 			Message: err.Error(),
 		})
 	}
-	nodeRowMetrics := ToRow(result.Items, nodes.Items)
+	nodeRowMetrics := ToRow(metrics.Items, nodes.Items)
 	fmt.Print("metrics: ", nodeRowMetrics)
 	return context.JSON(http.StatusOK, models.Response{
 		Data:         utils.StructToMap(nodeRowMetrics),
