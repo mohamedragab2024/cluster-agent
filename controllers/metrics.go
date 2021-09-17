@@ -16,7 +16,6 @@ import (
 type MetricsController struct{}
 
 func (c MetricsController) NodeMetrics(context echo.Context) error {
-	var nodeRowMetrics []models.NodeRowMetrics
 	var client utils.Client = *utils.NewClient()
 	result, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -30,14 +29,14 @@ func (c MetricsController) NodeMetrics(context echo.Context) error {
 			Message: err.Error(),
 		})
 	}
-	ToRow(result.Items, nodes.Items, &nodeRowMetrics)
+	nodeRowMetrics := ToRow(result.Items, nodes.Items)
 	return context.JSON(http.StatusOK, models.Response{
 		Data:         utils.StructToMap(nodeRowMetrics),
 		ResourceType: utils.RESOUCETYPE_NODES,
 	})
 }
 
-func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node, rows *[]models.NodeRowMetrics) {
+func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node) (rows []models.NodeRowMetrics) {
 	for k, v := range nodes {
 		var row models.NodeRowMetrics
 		row.Architecture = v.Status.NodeInfo.Architecture
@@ -53,6 +52,8 @@ func ToRow(metrics []v1beta1.NodeMetrics, nodes []v1.Node, rows *[]models.NodeRo
 		row.TotalMemory = fmt.Sprintf("%vMi", v.Status.Allocatable.Memory().MilliValue())
 		row.CpuUsageCors = fmt.Sprintf("%vm", metrics[k].Usage.Cpu().MilliValue())
 		row.MemoryUsage = fmt.Sprintf("%vMi", metrics[k].Usage.Memory().MilliValue())
-		*rows = append(*rows, row)
+		rows = append(rows, row)
 	}
+
+	return
 }
