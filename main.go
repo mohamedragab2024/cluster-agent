@@ -31,12 +31,14 @@ func handleRouting(e *echo.Echo) {
 	serviceRouter := routers.SeviceRouter{}
 	nodeRouter := routers.NodesRouter{}
 	ingressRouter := routers.IngresRouter{}
+	metricsRouter := routers.MetricsRouter{}
 	namespacesRouter.Handle(e)
 	podsRouter.Handle(e)
 	deplymentRouter.Handle(e)
 	serviceRouter.Handle(e)
 	nodeRouter.Handle(e)
 	ingressRouter.Handle(e)
+	metricsRouter.Handle(e)
 }
 
 func main() {

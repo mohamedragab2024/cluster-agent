@@ -19,34 +19,6 @@ import (
 type PodsController struct {
 }
 
-func (c PodsController) Metrics(context echo.Context, nameSpaceName string) error {
-	var client utils.Client = *utils.NewClient()
-	result, err := client.MetricsV1beta1.PodMetricses(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{})
-
-	if err != nil {
-		return context.JSON(http.StatusBadRequest, models.Response{
-			Message: err.Error(),
-		})
-	}
-
-	return context.JSON(http.StatusOK, models.Response{
-		Data:         utils.StructToMap(result),
-		ResourceType: utils.RESOUCETYPE_NODES,
-	})
-}
-
-func (c PodsController) WatchTest(session *utils.Session) {
-	go func() {
-
-		for {
-			services.MonitoringService{}.PushEvent(session)
-			time.Sleep(30 * time.Second)
-		}
-
-	}()
-
-}
-
 func (c PodsController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Pods(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
