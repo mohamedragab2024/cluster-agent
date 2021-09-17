@@ -11,7 +11,6 @@ import (
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
-	CoreV1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -21,7 +20,7 @@ type PodsController struct {
 
 func (c PodsController) Watch(session *utils.Session) {
 	var client utils.Client = *utils.NewClient()
-	watch, err := client.Clientset.CoreV1().Pods(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
+	watch, err := client.Clientset.CoreV1().Pods(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
