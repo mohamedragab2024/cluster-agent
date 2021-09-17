@@ -31,13 +31,16 @@ func (c ClusterCacheService) PushMetricsUpdates() {
 		return
 	}
 
+	config := utils.NewConfig()
 	client := &http.Client{}
-	r, err := http.NewRequest(http.MethodPut, fmt.Sprintf("http://%s/clusters/%s", utils.NewConfig().RemoteProxy, utils.NewConfig().ClientId), bytes.NewBuffer(jsonReq))
+	r, err := http.NewRequest(http.MethodPut, fmt.Sprintf("http://%s/clusters/%s", config.RemoteProxy, config.ClientId), bytes.NewBuffer(jsonReq))
 	if err != nil {
 		log.Println("write:", err)
 		return
 	}
 	r.Header.Add("Content-Type", "application/json; charset=utf-8")
+	r.Header.Add("x-agent", config.ClientId)
+	r.Header.Add("x-agent-app-key", config.ClientId)
 	resp, _ := client.Do(r)
 	if err != nil {
 		log.Println("write:", err)

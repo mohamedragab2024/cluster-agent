@@ -19,9 +19,10 @@ func init() {
 }
 
 var (
-	addr  string
-	id    string
-	debug bool
+	addr   string
+	id     string
+	debug  bool
+	appKey string
 )
 
 func handleRouting(e *echo.Echo) {
@@ -45,6 +46,7 @@ func main() {
 	config := utils.NewConfig()
 	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", config.RemoteProxy), "Address to connect to")
 	flag.StringVar(&id, "id", config.ClientId, "Client ID")
+	flag.StringVar(&id, "id", config.AppKey, "App Key")
 	flag.BoolVar(&debug, "debug", true, "Debug logging")
 	flag.Parse()
 
@@ -53,7 +55,9 @@ func main() {
 	}
 
 	headers := http.Header{
-		"X-Tunnel-ID": []string{id},
+		"X-Tunnel-ID":     []string{id},
+		"x-agent":         []string{id},
+		"x-agent-app-key": []string{appKey},
 	}
 	time.AfterFunc(5*time.Second, func() {
 		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
