@@ -33,6 +33,8 @@ func handleRouting(e *echo.Echo) {
 	nodeRouter := routers.NodesRouter{}
 	ingressRouter := routers.IngresRouter{}
 	metricsRouter := routers.MetricsRouter{}
+	secretRouter := routers.SecretRouter{}
+	eventRouter := routers.EventsRouter{}
 	namespacesRouter.Handle(e)
 	podsRouter.Handle(e)
 	deplymentRouter.Handle(e)
@@ -40,6 +42,8 @@ func handleRouting(e *echo.Echo) {
 	nodeRouter.Handle(e)
 	ingressRouter.Handle(e)
 	metricsRouter.Handle(e)
+	secretRouter.Handle(e)
+	eventRouter.Handle(e)
 }
 
 func main() {
@@ -76,6 +80,8 @@ func main() {
 	controllers.NameSpacesController{}.Watch(&session)
 	controllers.NodesController{}.Watch(&session)
 	controllers.IngressController{}.Watch(&session)
+	controllers.SecretsController{}.Watch(&session)
+	controllers.EventsController{}.Watch(&session)
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {

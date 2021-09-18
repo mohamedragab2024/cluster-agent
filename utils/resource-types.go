@@ -8,4 +8,5 @@ const (
 	RESOUCETYPE_SERVICES    string = "Services"
 	RESOUCETYPE_INGRESS     string = "Ingress"
 	RESOUCETYPE_SECRETS     string = "Secrets"
+	EVENTS                  string = "Events"
 )
