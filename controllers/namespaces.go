@@ -52,7 +52,7 @@ func (c NameSpacesController) Watch(session *utils.Session) {
 				PayLoad:   obj,
 			}.PushEvent(session)
 		}
-		time.Sleep(30 * time.Second)
+
 	}()
 }
 
