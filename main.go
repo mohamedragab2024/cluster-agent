@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -89,7 +91,21 @@ func main() {
 	})
 
 	e.GET("/health", func(context echo.Context) error {
-		return context.String(http.StatusOK, "app is running")
+		resp, err := http.Get(fmt.Sprintf("http://%s", config.RemoteProxy))
+		if err != nil {
+			log.Fatalln(err)
+			return context.String(http.StatusGatewayTimeout, "error connecting to gateway")
+		}
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalln(err)
+			return context.String(http.StatusGatewayTimeout, "error connecting to gateway")
+		}
+
+		fmt.Print(string(body))
+
+		return context.String(http.StatusOK, "App is running")
+
 	})
 	handleRouting(e)
 
