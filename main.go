@@ -91,7 +91,7 @@ func main() {
 	})
 
 	e.GET("/health", func(context echo.Context) error {
-		resp, err := http.Get(fmt.Sprintf("http://%s", config.RemoteProxy))
+		resp, err := http.Get(fmt.Sprintf("%s://%s", config.RemoteSchema, config.RemoteProxy))
 		if err != nil {
 			log.Fatalln(err)
 			return context.String(http.StatusGatewayTimeout, "error connecting to gateway")
