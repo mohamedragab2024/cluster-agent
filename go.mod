@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/gorilla/websocket v1.4.2
-	github.com/joho/godotenv v1.3.0 // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/labstack/echo/v4 v4.5.0
 	github.com/rancher/remotedialer v0.2.5
 	github.com/sirupsen/logrus v1.4.2
