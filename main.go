@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/kube-carbonara/cluster-agent/controllers"
 	routers "github.com/kube-carbonara/cluster-agent/routers"
 	"github.com/kube-carbonara/cluster-agent/utils"
@@ -49,6 +50,8 @@ func handleRouting(e *echo.Echo) {
 }
 
 func main() {
+	godotenv.Load()
+
 	config := utils.NewConfig()
 	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", config.RemoteProxy), "Address to connect to")
 	flag.StringVar(&id, "id", config.ClientId, "Client ID")
@@ -76,14 +79,14 @@ func main() {
 	}
 	session.NewSession()
 	defer session.Conn.Close()
-	controllers.ServicesController{}.Watch(&session)
-	controllers.PodsController{}.Watch(&session)
-	controllers.DeploymentsController{}.Watch(&session)
-	controllers.NameSpacesController{}.Watch(&session)
-	controllers.NodesController{}.Watch(&session)
-	controllers.IngressController{}.Watch(&session)
-	controllers.SecretsController{}.Watch(&session)
-	controllers.EventsController{}.Watch(&session)
+	controllers.ServicesController{}.WatchTest(&session)
+	// controllers.PodsController{}.Watch(&session)
+	// controllers.DeploymentsController{}.Watch(&session)
+	// controllers.NameSpacesController{}.Watch(&session)
+	// controllers.NodesController{}.Watch(&session)
+	// controllers.IngressController{}.Watch(&session)
+	// controllers.SecretsController{}.Watch(&session)
+	// controllers.EventsController{}.Watch(&session)
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {
