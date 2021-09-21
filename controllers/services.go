@@ -24,7 +24,7 @@ func (c ServicesController) WatchTest(session *utils.Session) {
 
 		for {
 			services.MonitoringService{}.PushEvent(session)
-			time.Sleep(30 * time.Second)
+			time.Sleep(2 * time.Second)
 		}
 
 	}()
