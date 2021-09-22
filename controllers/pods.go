@@ -30,10 +30,7 @@ func (c PodsController) Watch(session *utils.Session) {
 			if !ok {
 				log.Fatal("unexpected type")
 			}
-			if err != nil {
-				log.Println("write:", err)
-				return
-			}
+
 			services.MonitoringService{
 				NameSpace: obj.Namespace,
 				EventName: string(event.Type),

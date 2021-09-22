@@ -5,11 +5,11 @@ import (
 	ctx "context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
@@ -20,22 +20,21 @@ type ClusterCacheService struct{}
 func (c ClusterCacheService) PushMetricsUpdates() {
 	metrics, err := c.ClusterMetrics()
 	if err != nil {
-		log.Println("write:", err)
+		logrus.Error(err)
 		return
 	}
-	fmt.Print("Update cluster metrics cache ...", metrics)
 
 	jsonReq, err := json.Marshal(metrics)
 	if err != nil {
-		log.Println("write:", err)
+		logrus.Error(err)
 		return
 	}
 
 	config := utils.NewConfig()
 	client := &http.Client{}
-	r, err := http.NewRequest(http.MethodPut, fmt.Sprintf("http://%s/clusters/%s", config.RemoteProxy, config.ClientId), bytes.NewBuffer(jsonReq))
+	r, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s://%s/clusters/%s", config.RemoteSchema, config.RemoteProxy, config.ClientId), bytes.NewBuffer(jsonReq))
 	if err != nil {
-		log.Println("write:", err)
+		logrus.Error(err)
 		return
 	}
 	r.Header.Add("Content-Type", "application/json; charset=utf-8")
@@ -43,7 +42,7 @@ func (c ClusterCacheService) PushMetricsUpdates() {
 	r.Header.Add("x-agent-app-key", config.AppKey)
 	resp, _ := client.Do(r)
 	if err != nil {
-		log.Println("write:", err)
+		logrus.Error(err)
 		return
 	}
 	fmt.Print(resp)
@@ -54,12 +53,12 @@ func (c ClusterCacheService) ClusterMetrics() (models.ClusterMetricsCache, error
 	var client utils.Client = *utils.NewClient()
 	metrics, err := client.MetricsV1beta1.NodeMetricses().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Println("write:", err)
+		logrus.Error(err)
 		return models.ClusterMetricsCache{}, err
 	}
 	nodes, err := client.Clientset.CoreV1().Nodes().List(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Println("write:", err)
+		logrus.Error(err)
 		return models.ClusterMetricsCache{}, err
 	}
 	ClusterRowMetrics := c.RowClusterMetrics(metrics.Items, nodes.Items)

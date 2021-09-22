@@ -47,10 +47,7 @@ func (c ServicesController) Watch(session *utils.Session) {
 			if !ok {
 				log.Fatal("unexpected type")
 			}
-			if err != nil {
-				log.Println("write:", err)
-				return
-			}
+
 			services.MonitoringService{
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_SERVICES,

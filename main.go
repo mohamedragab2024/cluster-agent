@@ -105,7 +105,7 @@ func main() {
 			return context.String(http.StatusGatewayTimeout, "error connecting to gateway")
 		}
 
-		fmt.Print(string(body))
+		fmt.Print(string(body) + "\n")
 
 		return context.String(http.StatusOK, "App is running")
 
