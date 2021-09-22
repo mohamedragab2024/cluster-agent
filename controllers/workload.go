@@ -71,7 +71,7 @@ func getWorkLoad(deployments *v1.DeploymentList, pods *core1.PodList) []models.W
 	for _, v := range deployments.Items {
 		selectors = append(selectors, v.Labels["workload.user.cattle.io/workloadselector"])
 		workLoads = append(workLoads, models.WorkLoad{
-			Deployment: v,
+			Deployment: &v,
 			LinkedPods: getLinkedPods(pods, v.Labels["workload.user.cattle.io/workloadselector"]),
 		})
 	}
@@ -79,7 +79,7 @@ func getWorkLoad(deployments *v1.DeploymentList, pods *core1.PodList) []models.W
 	otherPods := getUnLinked(pods, selectors)
 	for _, v := range otherPods {
 		workLoads = append(workLoads, models.WorkLoad{
-			Pod: v,
+			Pod: &v,
 		})
 	}
 	return workLoads

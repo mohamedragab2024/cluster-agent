@@ -6,9 +6,9 @@ import (
 )
 
 type WorkLoad struct {
-	Deployment v1.Deployment `json:"deployment"`
-	LinkedPods []core1.Pod   `json:"linkedPods"`
-	Pod        core1.Pod     `json:"pod"`
+	Deployment *v1.Deployment `json:"deployment"`
+	LinkedPods []core1.Pod    `json:"linkedPods"`
+	Pod        *core1.Pod     `json:"pod"`
 }
 
 type WorkLoadList struct {
