@@ -2,9 +2,9 @@ package services
 
 import (
 	"encoding/json"
-	"log"
 
 	utils "github.com/kube-carbonara/cluster-agent/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type MonitoringService struct {
@@ -20,8 +20,7 @@ func (m MonitoringService) PushEvent(session *utils.Session) {
 	msg, _ := json.Marshal(m)
 	err := session.Send(msg)
 	if err != nil {
-		log.Println("write:", err)
-		return
+		logrus.Error(err)
 	}
 
 }
