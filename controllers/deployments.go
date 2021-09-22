@@ -86,6 +86,23 @@ func (c DeploymentsController) Get(context echo.Context, nameSpaceName string) e
 	})
 }
 
+func (c DeploymentsController) GetBySelector(context echo.Context, nameSpaceName string, selector string) error {
+	var client utils.Client = *utils.NewClient()
+	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{
+		LabelSelector: selector,
+	})
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
+	})
+}
+
 func (c DeploymentsController) Create(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
 	deployment := &v1.Deployment{}
 	UnmarshalErr := json.Unmarshal(utils.MapToJson(deploymentConfig), deployment)

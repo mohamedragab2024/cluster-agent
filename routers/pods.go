@@ -18,7 +18,13 @@ func (router PodsRouter) Handle(e *echo.Echo) {
 		} else {
 			ns = context.Param("ns")
 		}
-		return podsController.Get(context, ns)
+		selector := context.QueryParam("selector")
+		if selector != "" {
+			return podsController.GetBySelector(context, ns, selector)
+		} else {
+			return podsController.Get(context, ns)
+		}
+
 	})
 
 	e.GET("/:ns/pods/:id", func(context echo.Context) error {

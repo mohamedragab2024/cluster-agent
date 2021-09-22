@@ -18,7 +18,14 @@ func (router DeploymentsRouter) Handle(e *echo.Echo) {
 		} else {
 			ns = context.Param("ns")
 		}
-		return deploymentController.Get(context, ns)
+
+		selector := context.QueryParam("selector")
+		if selector != "" {
+			return deploymentController.GetBySelector(context, ns, selector)
+		} else {
+			return deploymentController.Get(context, ns)
+		}
+
 	})
 
 	e.GET("/:ns/deployments/:id", func(context echo.Context) error {
