@@ -10,3 +10,7 @@ type WorkLoad struct {
 	LinkedPods []core1.Pod   `json:"linkedPods"`
 	Pod        core1.Pod     `json:"pod"`
 }
+
+type WorkLoadList struct {
+	Items []WorkLoad `json:"items"`
+}

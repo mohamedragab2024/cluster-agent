@@ -1,6 +1,8 @@
 package routers
 
 import (
+	"fmt"
+
 	controllers "github.com/kube-carbonara/cluster-agent/controllers"
 	"github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
@@ -20,6 +22,7 @@ func (router PodsRouter) Handle(e *echo.Echo) {
 		}
 		selector := context.QueryParam("selector")
 		if selector != "" {
+			fmt.Printf("Selector %s \n", selector)
 			return podsController.GetBySelector(context, ns, selector)
 		} else {
 			return podsController.Get(context, ns)

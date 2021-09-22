@@ -30,7 +30,9 @@ func (c WorkLoadController) Get(context echo.Context, nameSpaceName string) erro
 	}
 	workLoads := getWorkLoad(deployments, pods)
 	return context.JSON(http.StatusOK, models.Response{
-		Data:         utils.StructToMap(workLoads),
+		Data: utils.StructToMap(&models.WorkLoadList{
+			Items: workLoads,
+		}),
 		ResourceType: utils.WORK_LOAD,
 	})
 
@@ -56,7 +58,9 @@ func (c WorkLoadController) GetBySelector(context echo.Context, nameSpaceName st
 	}
 	workLoads := getWorkLoad(deployments, pods)
 	return context.JSON(http.StatusOK, models.Response{
-		Data:         utils.StructToMap(workLoads),
+		Data: utils.StructToMap(&models.WorkLoadList{
+			Items: workLoads,
+		}),
 		ResourceType: utils.WORK_LOAD,
 	})
 }

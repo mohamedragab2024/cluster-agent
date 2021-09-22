@@ -3,6 +3,7 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -73,6 +74,7 @@ func (c PodsController) Get(context echo.Context, nameSpaceName string) error {
 }
 
 func (c PodsController) GetBySelector(context echo.Context, nameSpaceName string, selector string) error {
+	fmt.Printf("getting pods by selector %s \n", selector)
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.CoreV1().Pods(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{
 		LabelSelector: selector,
