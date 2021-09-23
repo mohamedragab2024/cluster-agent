@@ -18,13 +18,19 @@ import (
 type PodsController struct {
 }
 
-func (c PodsController) Watch(session *utils.Session) {
+func (c PodsController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Pods(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		for event := range watch.ResultChan() {
 
 			obj, ok := event.Object.(*v1.Pod)
@@ -37,7 +43,7 @@ func (c PodsController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_PODS,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 			services.ClusterCacheService{}.PushMetricsUpdates()
 		}
 	}()

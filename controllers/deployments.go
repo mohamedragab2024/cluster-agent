@@ -30,13 +30,19 @@ func (c DeploymentsController) WatchTest(session *utils.Session) {
 
 }
 
-func (c DeploymentsController) Watch(session *utils.Session) {
+func (c DeploymentsController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.AppsV1().Deployments(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		for event := range watch.ResultChan() {
 
 			obj, ok := event.Object.(*v1.Deployment)
@@ -49,7 +55,7 @@ func (c DeploymentsController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 		}
 
 	}()

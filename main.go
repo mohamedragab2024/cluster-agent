@@ -75,20 +75,14 @@ func main() {
 
 	})
 
-	session := utils.Session{
-		Host:    config.RemoteProxy,
-		Channel: "monitoring",
-	}
-	session.NewSession()
-	defer session.Conn.Close()
-	controllers.ServicesController{}.Watch(&session)
-	controllers.PodsController{}.Watch(&session)
-	controllers.DeploymentsController{}.Watch(&session)
-	controllers.NameSpacesController{}.Watch(&session)
-	controllers.NodesController{}.Watch(&session)
-	controllers.IngressController{}.Watch(&session)
-	controllers.SecretsController{}.Watch(&session)
-	controllers.EventsController{}.Watch(&session)
+	controllers.ServicesController{}.Watch()
+	controllers.PodsController{}.Watch()
+	controllers.DeploymentsController{}.Watch()
+	controllers.NameSpacesController{}.Watch()
+	controllers.NodesController{}.Watch()
+	controllers.IngressController{}.Watch()
+	controllers.SecretsController{}.Watch()
+	controllers.EventsController{}.Watch()
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {

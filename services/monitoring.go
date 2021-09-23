@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	utils "github.com/kube-carbonara/cluster-agent/utils"
-	"github.com/sirupsen/logrus"
 )
 
 type MonitoringService struct {
@@ -15,12 +14,14 @@ type MonitoringService struct {
 	ClusterId string
 }
 
-func (m MonitoringService) PushEvent(session *utils.Session) {
+func (m MonitoringService) PushEvent(session *utils.Session) error {
+	defer session.Conn.Close()
 	m.ClusterId = utils.NewConfig().ClientId
 	msg, _ := json.Marshal(m)
 	err := session.Send(msg)
 	if err != nil {
-		logrus.Error(err)
+		return err
 	}
 
+	return nil
 }

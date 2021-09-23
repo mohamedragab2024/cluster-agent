@@ -29,13 +29,19 @@ func (c NameSpacesController) WatchTest(session *utils.Session) {
 
 }
 
-func (c NameSpacesController) Watch(session *utils.Session) {
+func (c NameSpacesController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Namespaces().Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		for event := range watch.ResultChan() {
 
 			obj, ok := event.Object.(*v1.Namespace)
@@ -47,7 +53,7 @@ func (c NameSpacesController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_NAMESPACES,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 		}
 
 	}()

@@ -31,7 +31,8 @@ func (c ServicesController) WatchTest(session *utils.Session) {
 
 }
 
-func (c ServicesController) Watch(session *utils.Session) {
+func (c ServicesController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Services(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -40,6 +41,11 @@ func (c ServicesController) Watch(session *utils.Session) {
 	}
 	done := make(chan struct{})
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		defer close(done)
 		for event := range watch.ResultChan() {
 
@@ -52,7 +58,7 @@ func (c ServicesController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_SERVICES,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 		}
 	}()
 

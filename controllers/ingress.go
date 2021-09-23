@@ -31,13 +31,19 @@ func (c IngressController) WatchTest(session *utils.Session) {
 
 }
 
-func (c IngressController) Watch(session *utils.Session) {
+func (c IngressController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Networkingv1client.Ingresses(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		for event := range watch.ResultChan() {
 
 			obj, ok := event.Object.(*networkingv1.Ingress)
@@ -50,7 +56,7 @@ func (c IngressController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_INGRESS,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 		}
 
 	}()

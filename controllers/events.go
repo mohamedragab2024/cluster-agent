@@ -16,13 +16,19 @@ import (
 type EventsController struct {
 }
 
-func (c EventsController) Watch(session *utils.Session) {
+func (c EventsController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Events(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		for event := range watch.ResultChan() {
 
 			obj, ok := event.Object.(*CoreV1.Event)
@@ -35,7 +41,7 @@ func (c EventsController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.EVENTS,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 		}
 	}()
 

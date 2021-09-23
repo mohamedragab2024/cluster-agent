@@ -18,7 +18,8 @@ import (
 type SecretsController struct {
 }
 
-func (c SecretsController) Watch(session *utils.Session) {
+func (c SecretsController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Secrets(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -27,6 +28,11 @@ func (c SecretsController) Watch(session *utils.Session) {
 	}
 	done := make(chan struct{})
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		defer close(done)
 		for event := range watch.ResultChan() {
 
@@ -39,7 +45,7 @@ func (c SecretsController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_SECRETS,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 		}
 	}()
 

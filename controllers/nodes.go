@@ -16,13 +16,19 @@ import (
 
 type NodesController struct{}
 
-func (c NodesController) Watch(session *utils.Session) {
+func (c NodesController) Watch() {
+	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Nodes().Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	go func() {
+		session := utils.Session{
+			Host:    config.RemoteProxy,
+			Channel: "monitoring",
+		}
+		session.NewSession()
 		for event := range watch.ResultChan() {
 
 			obj, ok := event.Object.(*v1.Node)
@@ -34,7 +40,7 @@ func (c NodesController) Watch(session *utils.Session) {
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_NODES,
 				PayLoad:   obj,
-			}.PushEvent(session)
+			}.PushEvent(&session)
 			services.ClusterCacheService{}.PushMetricsUpdates()
 		}
 
