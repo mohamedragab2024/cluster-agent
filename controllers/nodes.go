@@ -24,13 +24,13 @@ func (c NodesController) Watch() {
 		log.Fatal(err.Error())
 	}
 	go func() {
-		session := utils.Session{
-			Host:    config.RemoteProxy,
-			Channel: "monitoring",
-		}
-		session.NewSession()
-		for event := range watch.ResultChan() {
 
+		for event := range watch.ResultChan() {
+			session := utils.Session{
+				Host:    config.RemoteProxy,
+				Channel: "monitoring",
+			}
+			session.NewSession()
 			obj, ok := event.Object.(*v1.Node)
 			if !ok {
 				log.Fatal("unexpected type")
@@ -42,6 +42,7 @@ func (c NodesController) Watch() {
 				PayLoad:   obj,
 			}.PushEvent(&session)
 			services.ClusterCacheService{}.PushMetricsUpdates()
+			session.Conn.Close()
 		}
 
 	}()

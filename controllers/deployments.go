@@ -38,13 +38,13 @@ func (c DeploymentsController) Watch() {
 		log.Fatal(err.Error())
 	}
 	go func() {
-		session := utils.Session{
-			Host:    config.RemoteProxy,
-			Channel: "monitoring",
-		}
-		session.NewSession()
-		for event := range watch.ResultChan() {
 
+		for event := range watch.ResultChan() {
+			session := utils.Session{
+				Host:    config.RemoteProxy,
+				Channel: "monitoring",
+			}
+			session.NewSession()
 			obj, ok := event.Object.(*v1.Deployment)
 			if !ok {
 				log.Fatal("unexpected type")
@@ -56,6 +56,7 @@ func (c DeploymentsController) Watch() {
 				Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
+			session.Conn.Close()
 		}
 
 	}()

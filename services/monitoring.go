@@ -15,7 +15,6 @@ type MonitoringService struct {
 }
 
 func (m MonitoringService) PushEvent(session *utils.Session) error {
-	defer session.Conn.Close()
 	m.ClusterId = utils.NewConfig().ClientId
 	msg, _ := json.Marshal(m)
 	err := session.Send(msg)

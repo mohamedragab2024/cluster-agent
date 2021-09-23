@@ -39,13 +39,13 @@ func (c IngressController) Watch() {
 		log.Fatal(err.Error())
 	}
 	go func() {
-		session := utils.Session{
-			Host:    config.RemoteProxy,
-			Channel: "monitoring",
-		}
-		session.NewSession()
-		for event := range watch.ResultChan() {
 
+		for event := range watch.ResultChan() {
+			session := utils.Session{
+				Host:    config.RemoteProxy,
+				Channel: "monitoring",
+			}
+			session.NewSession()
 			obj, ok := event.Object.(*networkingv1.Ingress)
 			if !ok {
 				log.Fatal("unexpected type")
@@ -57,6 +57,7 @@ func (c IngressController) Watch() {
 				Resource:  utils.RESOUCETYPE_INGRESS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
+			session.Conn.Close()
 		}
 
 	}()

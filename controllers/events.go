@@ -24,13 +24,13 @@ func (c EventsController) Watch() {
 		log.Fatal(err.Error())
 	}
 	go func() {
-		session := utils.Session{
-			Host:    config.RemoteProxy,
-			Channel: "monitoring",
-		}
-		session.NewSession()
-		for event := range watch.ResultChan() {
 
+		for event := range watch.ResultChan() {
+			session := utils.Session{
+				Host:    config.RemoteProxy,
+				Channel: "monitoring",
+			}
+			session.NewSession()
 			obj, ok := event.Object.(*CoreV1.Event)
 			if !ok {
 				log.Fatal("unexpected type")
@@ -42,6 +42,7 @@ func (c EventsController) Watch() {
 				Resource:  utils.EVENTS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
+			session.Conn.Close()
 		}
 	}()
 

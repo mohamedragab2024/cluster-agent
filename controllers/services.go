@@ -41,14 +41,14 @@ func (c ServicesController) Watch() {
 	}
 	done := make(chan struct{})
 	go func() {
-		session := utils.Session{
-			Host:    config.RemoteProxy,
-			Channel: "monitoring",
-		}
-		session.NewSession()
+
 		defer close(done)
 		for event := range watch.ResultChan() {
-
+			session := utils.Session{
+				Host:    config.RemoteProxy,
+				Channel: "monitoring",
+			}
+			session.NewSession()
 			obj, ok := event.Object.(*v1.Service)
 			if !ok {
 				log.Fatal("unexpected type")
@@ -59,6 +59,7 @@ func (c ServicesController) Watch() {
 				Resource:  utils.RESOUCETYPE_SERVICES,
 				PayLoad:   obj,
 			}.PushEvent(&session)
+			session.Conn.Close()
 		}
 	}()
 
