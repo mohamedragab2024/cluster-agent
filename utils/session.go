@@ -29,7 +29,7 @@ func (s *Session) NewSession() {
 }
 
 func (s *Session) Send(message []byte) error {
-
+	defer s.Conn.Close()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.Conn.WriteMessage(websocket.TextMessage, message)
