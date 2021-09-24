@@ -169,3 +169,82 @@ func (c DeploymentsController) Delete(context echo.Context, nameSpaceName string
 		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
 	})
 }
+
+func (c DeploymentsController) ReDeploy(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
+	deployment := &v1.Deployment{}
+	UnmarshalErr := json.Unmarshal(utils.MapToJson(deploymentConfig), deployment)
+	if UnmarshalErr != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: UnmarshalErr.Error(),
+		})
+	}
+
+	var client utils.Client = *utils.NewClient()
+	s, err := client.Clientset.AppsV1().
+		Deployments(nameSpaceName).
+		GetScale(ctx.TODO(), deployment.Name, metav1.GetOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sc := *s
+	oldReplica := sc.Spec.Replicas
+	sc.Spec.Replicas = 0
+
+	client.Clientset.AppsV1().
+		Deployments(deployment.Name).
+		UpdateScale(ctx.TODO(),
+			deployment.Name, &sc, metav1.UpdateOptions{})
+
+	sc.Spec.Replicas = oldReplica
+
+	client.Clientset.AppsV1().
+		Deployments(deployment.Name).
+		UpdateScale(ctx.TODO(),
+			deployment.Name, &sc, metav1.UpdateOptions{})
+
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(deployment),
+		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
+	})
+}
+
+func (c DeploymentsController) ReScale(context echo.Context, nameSpaceName string, scale int32, deploymentConfig map[string]interface{}) error {
+	deployment := &v1.Deployment{}
+	UnmarshalErr := json.Unmarshal(utils.MapToJson(deploymentConfig), deployment)
+	if UnmarshalErr != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: UnmarshalErr.Error(),
+		})
+	}
+	var client utils.Client = *utils.NewClient()
+	s, err := client.Clientset.AppsV1().
+		Deployments(nameSpaceName).
+		GetScale(ctx.TODO(), deployment.Name, metav1.GetOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sc := *s
+	sc.Spec.Replicas = scale
+
+	result, err := client.Clientset.AppsV1().
+		Deployments(nameSpaceName).
+		UpdateScale(ctx.TODO(),
+			deployment.Name, &sc, metav1.UpdateOptions{})
+
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, models.Response{
+			Message: err.Error(),
+		})
+	}
+	return context.JSON(http.StatusOK, models.Response{
+		Data:         utils.StructToMap(result),
+		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
+	})
+}
