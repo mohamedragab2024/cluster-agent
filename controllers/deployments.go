@@ -3,7 +3,6 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -12,6 +11,7 @@ import (
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/apps/v1"
 	CoreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,13 +55,16 @@ func (c DeploymentsController) Watch() {
 			if !ok {
 				log.Fatal("unexpected type")
 			} else {
-				fmt.Printf("pushing a new event %v \n", obj)
-				services.MonitoringService{
+				err := services.MonitoringService{
 					NameSpace: obj.Namespace,
 					EventName: string(event.Type),
 					Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
 					PayLoad:   obj,
 				}.PushEvent(&session)
+
+				if err != nil {
+					logrus.Error("Error sending deployment events: ", err.Error())
+				}
 			}
 		}
 	}
