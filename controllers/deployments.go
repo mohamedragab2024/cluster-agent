@@ -178,7 +178,7 @@ func (c DeploymentsController) Restart(context echo.Context, nameSpaceName strin
 			Message: UnmarshalErr.Error(),
 		})
 	}
-	deployment.ObjectMeta.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().String()
+	deployment.Spec.Template.ObjectMeta.Annotations = make(map[string]string)
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).Update(ctx.TODO(), deployment, metav1.UpdateOptions{})
 	if err != nil {
