@@ -47,18 +47,20 @@ func (c DeploymentsController) Watch() {
 	session.NewSession()
 	defer session.Conn.Close()
 	defer close(done)
-	for event := range watch.ResultChan() {
+	for {
+		for event := range watch.ResultChan() {
 
-		obj, ok := event.Object.(*v1.Deployment)
-		if !ok {
-			log.Fatal("unexpected type")
-		} else {
-			services.MonitoringService{
-				NameSpace: obj.Namespace,
-				EventName: string(event.Type),
-				Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
-				PayLoad:   obj,
-			}.PushEvent(&session)
+			obj, ok := event.Object.(*v1.Deployment)
+			if !ok {
+				log.Fatal("unexpected type")
+			} else {
+				services.MonitoringService{
+					NameSpace: obj.Namespace,
+					EventName: string(event.Type),
+					Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
+					PayLoad:   obj,
+				}.PushEvent(&session)
+			}
 		}
 	}
 
