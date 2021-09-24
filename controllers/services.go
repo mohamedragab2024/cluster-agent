@@ -12,6 +12,7 @@ import (
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -19,15 +20,22 @@ import (
 type ServicesController struct {
 }
 
-func (c ServicesController) WatchTest(session *utils.Session) {
-	go func() {
+func (c ServicesController) WatchTest() {
+	config := utils.NewConfig()
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer session.Conn.Close()
+	for {
+		err := services.MonitoringService{}.PushEvent(&session)
+		if err != nil {
+			logrus.Error("Error sending deployment events: ", err.Error())
 
-		for {
-			services.MonitoringService{}.PushEvent(session)
-			time.Sleep(2 * time.Second)
 		}
-
-	}()
+		time.Sleep(2 * time.Second)
+	}
 
 }
 
@@ -59,7 +67,7 @@ func (c ServicesController) Watch() {
 			Resource:  utils.RESOUCETYPE_SERVICES,
 			PayLoad:   obj,
 		}.PushEvent(&session)
-
+		time.Sleep(2 * time.Second)
 	}
 }
 

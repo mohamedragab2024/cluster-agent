@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
@@ -48,6 +49,7 @@ func (c PodsController) Watch() {
 			PayLoad:   obj,
 		}.PushEvent(&session)
 		services.ClusterCacheService{}.PushMetricsUpdates()
+		time.Sleep(2 * time.Second)
 
 	}
 }

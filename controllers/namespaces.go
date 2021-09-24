@@ -57,6 +57,8 @@ func (c NameSpacesController) Watch() {
 			}.PushEvent(&session)
 		}
 
+		time.Sleep(2 * time.Second)
+
 	}
 }
 

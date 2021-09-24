@@ -59,6 +59,8 @@ func (c IngressController) Watch() {
 			Resource:  utils.RESOUCETYPE_INGRESS,
 			PayLoad:   obj,
 		}.PushEvent(&session)
+
+		time.Sleep(2 * time.Second)
 	}
 }
 

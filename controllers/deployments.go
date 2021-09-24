@@ -23,8 +23,11 @@ func (c DeploymentsController) WatchTest(session *utils.Session) {
 	go func() {
 
 		for {
-			services.MonitoringService{}.PushEvent(session)
-			time.Sleep(30 * time.Second)
+			err := services.MonitoringService{}.PushEvent(session)
+			if err != nil {
+				logrus.Error("Error sending deployment events: ", err.Error())
+			}
+			time.Sleep(1 * time.Second)
 		}
 
 	}()

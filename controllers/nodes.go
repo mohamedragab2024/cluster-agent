@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
@@ -44,6 +45,7 @@ func (c NodesController) Watch() {
 			PayLoad:   obj,
 		}.PushEvent(&session)
 		services.ClusterCacheService{}.PushMetricsUpdates()
+		time.Sleep(2 * time.Second)
 	}
 }
 

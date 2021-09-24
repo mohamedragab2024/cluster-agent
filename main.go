@@ -57,14 +57,14 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "Debug logging")
 	flag.Parse()
 
-	go controllers.ServicesController{}.Watch()
-	go controllers.PodsController{}.Watch()
-	go controllers.DeploymentsController{}.Watch()
-	go controllers.NameSpacesController{}.Watch()
-	go controllers.NodesController{}.Watch()
-	go controllers.IngressController{}.Watch()
-	go controllers.SecretsController{}.Watch()
-	go controllers.EventsController{}.Watch()
+	go controllers.ServicesController{}.WatchTest()
+	// go controllers.PodsController{}.Watch()
+	// go controllers.DeploymentsController{}.Watch()
+	// go controllers.NameSpacesController{}.Watch()
+	// go controllers.NodesController{}.Watch()
+	// go controllers.IngressController{}.Watch()
+	// go controllers.SecretsController{}.Watch()
+	// go controllers.EventsController{}.Watch()
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {

@@ -73,13 +73,7 @@ func main() {
 
 	})
 
-	session := utils.Session{
-		Host:    config.RemoteProxy,
-		Channel: "monitoring",
-	}
-	session.NewSession()
-	defer session.Conn.Close()
-	controllers.ServicesController{}.WatchTest(&session)
+	controllers.ServicesController{}.WatchTest()
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {
