@@ -182,7 +182,7 @@ func (c DeploymentsController) ReDeploy(context echo.Context, nameSpaceName stri
 	var client utils.Client = *utils.NewClient()
 	s, err := client.Clientset.AppsV1().
 		Deployments(nameSpaceName).
-		GetScale(ctx.TODO(), deployment.Name, metav1.GetOptions{})
+		GetScale(ctx.TODO(), deployment.ObjectMeta.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -192,16 +192,16 @@ func (c DeploymentsController) ReDeploy(context echo.Context, nameSpaceName stri
 	sc.Spec.Replicas = 0
 
 	client.Clientset.AppsV1().
-		Deployments(deployment.Name).
+		Deployments(nameSpaceName).
 		UpdateScale(ctx.TODO(),
-			deployment.Name, &sc, metav1.UpdateOptions{})
+			deployment.ObjectMeta.Name, &sc, metav1.UpdateOptions{})
 
 	sc.Spec.Replicas = oldReplica
 
 	client.Clientset.AppsV1().
-		Deployments(deployment.Name).
+		Deployments(nameSpaceName).
 		UpdateScale(ctx.TODO(),
-			deployment.Name, &sc, metav1.UpdateOptions{})
+			deployment.ObjectMeta.Name, &sc, metav1.UpdateOptions{})
 
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
@@ -225,7 +225,7 @@ func (c DeploymentsController) ReScale(context echo.Context, nameSpaceName strin
 	var client utils.Client = *utils.NewClient()
 	s, err := client.Clientset.AppsV1().
 		Deployments(nameSpaceName).
-		GetScale(ctx.TODO(), deployment.Name, metav1.GetOptions{})
+		GetScale(ctx.TODO(), deployment.ObjectMeta.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -236,7 +236,7 @@ func (c DeploymentsController) ReScale(context echo.Context, nameSpaceName strin
 	result, err := client.Clientset.AppsV1().
 		Deployments(nameSpaceName).
 		UpdateScale(ctx.TODO(),
-			deployment.Name, &sc, metav1.UpdateOptions{})
+			deployment.ObjectMeta.Name, &sc, metav1.UpdateOptions{})
 
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
