@@ -23,28 +23,27 @@ func (c EventsController) Watch() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	go func() {
+	done := make(chan struct{})
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer session.Conn.Close()
+	defer close(done)
+	for event := range watch.ResultChan() {
 
-		for event := range watch.ResultChan() {
-			session := utils.Session{
-				Host:    config.RemoteProxy,
-				Channel: "monitoring",
-			}
-			session.NewSession()
-			obj, ok := event.Object.(*CoreV1.Event)
-			if !ok {
-				log.Fatal("unexpected type")
-			}
-
-			services.MonitoringService{
-				NameSpace: obj.Namespace,
-				EventName: string(event.Type),
-				Resource:  utils.EVENTS,
-				PayLoad:   obj,
-			}.PushEvent(&session)
-			session.Conn.Close()
+		obj, ok := event.Object.(*CoreV1.Event)
+		if !ok {
+			log.Fatal("unexpected type")
 		}
-	}()
+		services.MonitoringService{
+			NameSpace: obj.Namespace,
+			EventName: string(event.Type),
+			Resource:  utils.EVENTS,
+			PayLoad:   obj,
+		}.PushEvent(&session)
+	}
 
 }
 

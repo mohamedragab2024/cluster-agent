@@ -40,29 +40,27 @@ func (c ServicesController) Watch() {
 		log.Fatal(err.Error())
 	}
 	done := make(chan struct{})
-	go func() {
+	defer close(done)
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer session.Conn.Close()
+	for event := range watch.ResultChan() {
 
-		defer close(done)
-		for event := range watch.ResultChan() {
-			session := utils.Session{
-				Host:    config.RemoteProxy,
-				Channel: "monitoring",
-			}
-			session.NewSession()
-			obj, ok := event.Object.(*v1.Service)
-			if !ok {
-				log.Fatal("unexpected type")
-			}
-
-			services.MonitoringService{
-				EventName: string(event.Type),
-				Resource:  utils.RESOUCETYPE_SERVICES,
-				PayLoad:   obj,
-			}.PushEvent(&session)
-			session.Conn.Close()
+		obj, ok := event.Object.(*v1.Service)
+		if !ok {
+			log.Fatal("unexpected type")
 		}
-	}()
 
+		services.MonitoringService{
+			EventName: string(event.Type),
+			Resource:  utils.RESOUCETYPE_SERVICES,
+			PayLoad:   obj,
+		}.PushEvent(&session)
+
+	}
 }
 
 func (c ServicesController) GetOne(context echo.Context, nameSpaceName string, name string) error {

@@ -23,29 +23,28 @@ func (c NodesController) Watch() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	go func() {
+	done := make(chan struct{})
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer session.Conn.Close()
+	defer close(done)
+	for event := range watch.ResultChan() {
 
-		for event := range watch.ResultChan() {
-			session := utils.Session{
-				Host:    config.RemoteProxy,
-				Channel: "monitoring",
-			}
-			session.NewSession()
-			obj, ok := event.Object.(*v1.Node)
-			if !ok {
-				log.Fatal("unexpected type")
-			}
-
-			services.MonitoringService{
-				EventName: string(event.Type),
-				Resource:  utils.RESOUCETYPE_NODES,
-				PayLoad:   obj,
-			}.PushEvent(&session)
-			services.ClusterCacheService{}.PushMetricsUpdates()
-			session.Conn.Close()
+		obj, ok := event.Object.(*v1.Node)
+		if !ok {
+			log.Fatal("unexpected type")
 		}
 
-	}()
+		services.MonitoringService{
+			EventName: string(event.Type),
+			Resource:  utils.RESOUCETYPE_NODES,
+			PayLoad:   obj,
+		}.PushEvent(&session)
+		services.ClusterCacheService{}.PushMetricsUpdates()
+	}
 }
 
 func (c NodesController) GetOne(context echo.Context, name string) error {

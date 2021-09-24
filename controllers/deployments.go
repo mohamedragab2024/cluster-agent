@@ -37,29 +37,30 @@ func (c DeploymentsController) Watch() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	go func() {
 
-		for event := range watch.ResultChan() {
-			session := utils.Session{
-				Host:    config.RemoteProxy,
-				Channel: "monitoring",
-			}
-			session.NewSession()
-			obj, ok := event.Object.(*v1.Deployment)
-			if !ok {
-				log.Fatal("unexpected type")
-			}
+	done := make(chan struct{})
 
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer session.Conn.Close()
+	defer close(done)
+	for event := range watch.ResultChan() {
+
+		obj, ok := event.Object.(*v1.Deployment)
+		if !ok {
+			log.Fatal("unexpected type")
+		} else {
 			services.MonitoringService{
 				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
-			session.Conn.Close()
 		}
-
-	}()
+	}
 
 }
 

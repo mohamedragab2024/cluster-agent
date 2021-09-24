@@ -36,28 +36,28 @@ func (c NameSpacesController) Watch() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	go func() {
+	done := make(chan struct{})
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer session.Conn.Close()
+	defer close(done)
+	for event := range watch.ResultChan() {
 
-		for event := range watch.ResultChan() {
-			session := utils.Session{
-				Host:    config.RemoteProxy,
-				Channel: "monitoring",
-			}
-			session.NewSession()
-			obj, ok := event.Object.(*v1.Namespace)
-			if !ok {
-				log.Fatal("unexpected type")
-			}
-
+		obj, ok := event.Object.(*v1.Namespace)
+		if !ok {
+			log.Fatal("unexpected type")
+		} else {
 			services.MonitoringService{
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_NAMESPACES,
 				PayLoad:   obj,
 			}.PushEvent(&session)
-			session.Conn.Close()
 		}
 
-	}()
+	}
 }
 
 func (c NameSpacesController) GetOne(context echo.Context, name string) error {

@@ -27,27 +27,27 @@ func (c SecretsController) Watch() {
 		log.Fatal(err.Error())
 	}
 	done := make(chan struct{})
-	go func() {
-		session := utils.Session{
-			Host:    config.RemoteProxy,
-			Channel: "monitoring",
-		}
-		session.NewSession()
-		defer close(done)
-		for event := range watch.ResultChan() {
 
-			obj, ok := event.Object.(*v1.Secret)
-			if !ok {
-				log.Fatal("unexpected type")
-			}
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer close(done)
+	defer session.Conn.Close()
+	for event := range watch.ResultChan() {
 
-			services.MonitoringService{
-				EventName: string(event.Type),
-				Resource:  utils.RESOUCETYPE_SECRETS,
-				PayLoad:   obj,
-			}.PushEvent(&session)
+		obj, ok := event.Object.(*v1.Secret)
+		if !ok {
+			log.Fatal("unexpected type")
 		}
-	}()
+
+		services.MonitoringService{
+			EventName: string(event.Type),
+			Resource:  utils.RESOUCETYPE_SECRETS,
+			PayLoad:   obj,
+		}.PushEvent(&session)
+	}
 
 }
 

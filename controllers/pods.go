@@ -25,29 +25,31 @@ func (c PodsController) Watch() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	go func() {
+	done := make(chan struct{})
 
-		for event := range watch.ResultChan() {
-			session := utils.Session{
-				Host:    config.RemoteProxy,
-				Channel: "monitoring",
-			}
-			session.NewSession()
-			obj, ok := event.Object.(*v1.Pod)
-			if !ok {
-				log.Fatal("unexpected type")
-			}
+	session := utils.Session{
+		Host:    config.RemoteProxy,
+		Channel: "monitoring",
+	}
+	session.NewSession()
+	defer close(done)
+	defer session.Conn.Close()
+	for event := range watch.ResultChan() {
 
-			services.MonitoringService{
-				NameSpace: obj.Namespace,
-				EventName: string(event.Type),
-				Resource:  utils.RESOUCETYPE_PODS,
-				PayLoad:   obj,
-			}.PushEvent(&session)
-			services.ClusterCacheService{}.PushMetricsUpdates()
-			session.Conn.Close()
+		obj, ok := event.Object.(*v1.Pod)
+		if !ok {
+			log.Fatal("unexpected type")
 		}
-	}()
+
+		services.MonitoringService{
+			NameSpace: obj.Namespace,
+			EventName: string(event.Type),
+			Resource:  utils.RESOUCETYPE_PODS,
+			PayLoad:   obj,
+		}.PushEvent(&session)
+		services.ClusterCacheService{}.PushMetricsUpdates()
+
+	}
 }
 
 func (c PodsController) GetOne(context echo.Context, nameSpaceName string, name string) error {
