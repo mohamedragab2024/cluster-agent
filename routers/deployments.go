@@ -45,10 +45,10 @@ func (router DeploymentsRouter) Handle(e *echo.Echo) {
 
 	e.PUT("/:ns/deployments", func(context echo.Context) error {
 		deployment := utils.JsonBodyToMap(context.Request().Body)
-		reDeployParam := context.QueryParam("redeploy")
+		reDeployParam := context.QueryParam("restart")
 		scaleParam := context.QueryParam("scale")
 		if reDeployParam == "1" {
-			return deploymentController.ReDeploy(context, context.Param("ns"), deployment)
+			return deploymentController.Restart(context, context.Param("ns"), deployment)
 		}
 		if scaleParam != "" {
 			scale, err := strconv.ParseInt(scaleParam, 0, 32)

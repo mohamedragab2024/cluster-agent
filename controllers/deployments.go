@@ -170,7 +170,7 @@ func (c DeploymentsController) Delete(context echo.Context, nameSpaceName string
 	})
 }
 
-func (c DeploymentsController) ReDeploy(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
+func (c DeploymentsController) Restart(context echo.Context, nameSpaceName string, deploymentConfig map[string]interface{}) error {
 	deployment := &v1.Deployment{}
 	UnmarshalErr := json.Unmarshal(utils.MapToJson(deploymentConfig), deployment)
 	if UnmarshalErr != nil {
@@ -178,9 +178,9 @@ func (c DeploymentsController) ReDeploy(context echo.Context, nameSpaceName stri
 			Message: UnmarshalErr.Error(),
 		})
 	}
-
+	deployment.ObjectMeta.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().String()
 	var client utils.Client = *utils.NewClient()
-	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).UpdateStatus(ctx.TODO(), deployment, metav1.UpdateOptions{})
+	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).Update(ctx.TODO(), deployment, metav1.UpdateOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
