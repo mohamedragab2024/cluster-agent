@@ -3,6 +3,7 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -54,6 +55,7 @@ func (c DeploymentsController) Watch() {
 			if !ok {
 				log.Fatal("unexpected type")
 			} else {
+				fmt.Printf("pushing a new event %v \n", obj)
 				services.MonitoringService{
 					NameSpace: obj.Namespace,
 					EventName: string(event.Type),
