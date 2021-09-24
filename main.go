@@ -75,14 +75,14 @@ func main() {
 
 	})
 
-	controllers.ServicesController{}.Watch()
-	controllers.PodsController{}.Watch()
-	controllers.DeploymentsController{}.Watch()
-	controllers.NameSpacesController{}.Watch()
-	controllers.NodesController{}.Watch()
-	controllers.IngressController{}.Watch()
-	controllers.SecretsController{}.Watch()
-	controllers.EventsController{}.Watch()
+	go controllers.ServicesController{}.Watch()
+	go controllers.PodsController{}.Watch()
+	go controllers.DeploymentsController{}.Watch()
+	go controllers.NameSpacesController{}.Watch()
+	go controllers.NodesController{}.Watch()
+	go controllers.IngressController{}.Watch()
+	go controllers.SecretsController{}.Watch()
+	go controllers.EventsController{}.Watch()
 
 	e := echo.New()
 	e.GET("/", func(context echo.Context) error {
