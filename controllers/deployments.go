@@ -180,36 +180,15 @@ func (c DeploymentsController) ReDeploy(context echo.Context, nameSpaceName stri
 	}
 
 	var client utils.Client = *utils.NewClient()
-	s, err := client.Clientset.AppsV1().
-		Deployments(nameSpaceName).
-		GetScale(ctx.TODO(), deployment.ObjectMeta.Name, metav1.GetOptions{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	sc := *s
-	oldReplica := sc.Spec.Replicas
-	sc.Spec.Replicas = 0
-
-	client.Clientset.AppsV1().
-		Deployments(nameSpaceName).
-		UpdateScale(ctx.TODO(),
-			deployment.ObjectMeta.Name, &sc, metav1.UpdateOptions{})
-
-	sc.Spec.Replicas = oldReplica
-
-	client.Clientset.AppsV1().
-		Deployments(nameSpaceName).
-		UpdateScale(ctx.TODO(),
-			deployment.ObjectMeta.Name, &sc, metav1.UpdateOptions{})
-
+	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).UpdateStatus(ctx.TODO(), deployment, metav1.UpdateOptions{})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
 			Message: err.Error(),
 		})
 	}
+
 	return context.JSON(http.StatusOK, models.Response{
-		Data:         utils.StructToMap(deployment),
+		Data:         utils.StructToMap(result),
 		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
 	})
 }
