@@ -1,21 +1,17 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/kube-carbonara/cluster-agent/controllers"
 	routers "github.com/kube-carbonara/cluster-agent/routers"
 	"github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
-	"github.com/rancher/remotedialer"
-	"github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -58,22 +54,8 @@ func main() {
 	flag.StringVar(&addr, "connect", fmt.Sprintf("ws://%s/connect", config.RemoteProxy), "Address to connect to")
 	flag.StringVar(&id, "id", config.ClientId, "Client ID")
 	flag.StringVar(&appKey, "appKey", config.AppKey, "App Key")
-	flag.BoolVar(&debug, "debug", true, "Debug logging")
+	flag.BoolVar(&debug, "debug", false, "Debug logging")
 	flag.Parse()
-
-	if debug {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-
-	headers := http.Header{
-		"X-Tunnel-ID":     []string{id},
-		"x-agent":         []string{id},
-		"x-agent-app-key": []string{appKey},
-	}
-	time.AfterFunc(5*time.Second, func() {
-		remotedialer.ClientConnect(context.Background(), addr, headers, nil, func(string, string) bool { return true }, nil)
-
-	})
 
 	go controllers.ServicesController{}.Watch()
 	go controllers.PodsController{}.Watch()
