@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
@@ -50,6 +49,7 @@ func (c PodsController) Watch() {
 			PayLoad:   obj,
 		}.PushEvent(&session)
 		if err != nil {
+
 			logrus.Error(err)
 			session.Conn.Close()
 			session = *session.NewSession()
@@ -58,10 +58,8 @@ func (c PodsController) Watch() {
 				Resource:  utils.RESOUCETYPE_PODS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
-			time.Sleep(3 * time.Second)
 		}
 		services.ClusterCacheService{}.PushMetricsUpdates()
-		time.Sleep(2 * time.Second)
 
 	}
 }

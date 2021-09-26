@@ -74,7 +74,6 @@ func (c DeploymentsController) Watch() {
 						Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
 						PayLoad:   obj,
 					}.PushEvent(&session)
-					time.Sleep(3 * time.Second)
 				}
 			}
 		}

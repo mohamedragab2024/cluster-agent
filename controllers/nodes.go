@@ -46,6 +46,8 @@ func (c NodesController) Watch() {
 			PayLoad:   obj,
 		}.PushEvent(&session)
 		if err != nil {
+			time.Sleep(1 * time.Second)
+
 			logrus.Error(err)
 			session.Conn.Close()
 			session = *session.NewSession()
@@ -54,10 +56,8 @@ func (c NodesController) Watch() {
 				Resource:  utils.RESOUCETYPE_NODES,
 				PayLoad:   obj,
 			}.PushEvent(&session)
-			time.Sleep(3 * time.Second)
 		}
 		services.ClusterCacheService{}.PushMetricsUpdates()
-		time.Sleep(2 * time.Second)
 	}
 }
 

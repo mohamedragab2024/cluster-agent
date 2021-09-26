@@ -4,7 +4,6 @@ import (
 	ctx "context"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
@@ -55,7 +54,6 @@ func (c EventsController) Watch() {
 				Resource:  utils.EVENTS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
-			time.Sleep(3 * time.Second)
 		}
 	}
 

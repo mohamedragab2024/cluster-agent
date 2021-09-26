@@ -76,7 +76,6 @@ func (c ServicesController) Watch() {
 				Resource:  utils.RESOUCETYPE_SERVICES,
 				PayLoad:   obj,
 			}.PushEvent(&session)
-			time.Sleep(3 * time.Second)
 		}
 
 	}

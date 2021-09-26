@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
@@ -58,10 +57,8 @@ func (c SecretsController) Watch() {
 				Resource:  utils.RESOUCETYPE_SECRETS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
-			time.Sleep(3 * time.Second)
 		}
 
-		time.Sleep(2 * time.Second)
 	}
 
 }

@@ -65,11 +65,8 @@ func (c NameSpacesController) Watch() {
 					Resource:  utils.RESOUCETYPE_NAMESPACES,
 					PayLoad:   obj,
 				}.PushEvent(&session)
-				time.Sleep(3 * time.Second)
 			}
 		}
-
-		time.Sleep(2 * time.Second)
 
 	}
 }
