@@ -4,6 +4,7 @@ import (
 	ctx "context"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
@@ -17,14 +18,19 @@ import (
 type EventsController struct {
 }
 
-func (c EventsController) Watch() {
+func (c EventsController) runWatcherEventLoop() error {
 	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
-	watch, err := client.Clientset.CoreV1().Events(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
+	watch, err := client.Clientset.AppsV1().Deployments(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
+		return err
 	}
+
+	channel := watch.ResultChan()
+
 	done := make(chan struct{})
+
 	session := utils.Session{
 		Host:    config.RemoteProxy,
 		Channel: "monitoring",
@@ -32,29 +38,52 @@ func (c EventsController) Watch() {
 	session.NewSession()
 	defer session.Conn.Close()
 	defer close(done)
-	for event := range watch.ResultChan() {
+	for {
+		select {
+		case event, ok := <-channel:
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
 
-		obj, ok := event.Object.(*CoreV1.Event)
-		if !ok {
-			log.Fatal("unexpected type")
-		}
-		err := services.MonitoringService{
-			NameSpace: obj.Namespace,
-			EventName: string(event.Type),
-			Resource:  utils.EVENTS,
-			PayLoad:   obj,
-		}.PushEvent(&session)
-
-		if err != nil {
-			logrus.Error(err)
-			session.Conn.Close()
-			session = *session.NewSession()
-			services.MonitoringService{
+			obj, ok := event.Object.(*CoreV1.Event)
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
+			err := services.MonitoringService{
+				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
 				Resource:  utils.EVENTS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
+
+			if err != nil {
+				logrus.Error(err)
+				session.Conn.Close()
+				session = *session.NewSession()
+				services.MonitoringService{
+					EventName: string(event.Type),
+					Resource:  utils.EVENTS,
+					PayLoad:   obj,
+				}.PushEvent(&session)
+			}
+
+		case <-time.After(30 * time.Minute):
+			logrus.Info("Timeout, restarting event watcher")
+			return nil
+
 		}
+	}
+
+}
+
+func (c EventsController) Watch() {
+	for {
+		if err := c.runWatcherEventLoop(); err != nil {
+			logrus.Error(err)
+		}
+
 	}
 
 }

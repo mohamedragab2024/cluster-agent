@@ -27,20 +27,22 @@ func (c DeploymentsController) WatchTest(session *utils.Session) {
 			if err != nil {
 				logrus.Error("Error sending deployment events: ", err.Error())
 			}
-			time.Sleep(1 * time.Second)
 		}
 
 	}()
 
 }
 
-func (c DeploymentsController) Watch() {
+func (c DeploymentsController) runWatcherEventLoop() error {
 	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.AppsV1().Deployments(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
+		return err
 	}
+
+	channel := watch.ResultChan()
 
 	done := make(chan struct{})
 
@@ -52,35 +54,53 @@ func (c DeploymentsController) Watch() {
 	defer session.Conn.Close()
 	defer close(done)
 	for {
-		for event := range watch.ResultChan() {
-
+		select {
+		case event, ok := <-channel:
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
 			obj, ok := event.Object.(*v1.Deployment)
 			if !ok {
 				log.Fatal("unexpected type")
-			} else {
-				err := services.MonitoringService{
-					NameSpace: obj.Namespace,
+				return nil
+			}
+
+			err := services.MonitoringService{
+				NameSpace: obj.Namespace,
+				EventName: string(event.Type),
+				Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
+				PayLoad:   obj,
+			}.PushEvent(&session)
+
+			if err != nil {
+				logrus.Error(err)
+				session.Conn.Close()
+				session = *session.NewSession()
+				services.MonitoringService{
 					EventName: string(event.Type),
 					Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
 					PayLoad:   obj,
 				}.PushEvent(&session)
-
-				if err != nil {
-					logrus.Error(err)
-					session.Conn.Close()
-					session = *session.NewSession()
-					services.MonitoringService{
-						EventName: string(event.Type),
-						Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
-						PayLoad:   obj,
-					}.PushEvent(&session)
-				}
 			}
+
+		case <-time.After(30 * time.Minute):
+			logrus.Info("Timeout, restarting event watcher")
+			return nil
+
 		}
 	}
 
 }
 
+func (c DeploymentsController) Watch() error {
+	for {
+		if err := c.runWatcherEventLoop(); err != nil {
+			logrus.Error(err)
+		}
+
+	}
+}
 func (c DeploymentsController) GetOne(context echo.Context, nameSpaceName string, name string) error {
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).Get(ctx.TODO(), name, metav1.GetOptions{})

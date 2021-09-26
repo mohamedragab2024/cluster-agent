@@ -18,14 +18,19 @@ import (
 
 type NodesController struct{}
 
-func (c NodesController) Watch() {
+func (c NodesController) runWatcherEventLoop() error {
 	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Nodes().Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
+		return err
 	}
+
+	channel := watch.ResultChan()
+
 	done := make(chan struct{})
+
 	session := utils.Session{
 		Host:    config.RemoteProxy,
 		Channel: "monitoring",
@@ -33,31 +38,52 @@ func (c NodesController) Watch() {
 	session.NewSession()
 	defer session.Conn.Close()
 	defer close(done)
-	for event := range watch.ResultChan() {
+	for {
+		select {
+		case event, ok := <-channel:
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
+			obj, ok := event.Object.(*v1.Node)
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
 
-		obj, ok := event.Object.(*v1.Node)
-		if !ok {
-			log.Fatal("unexpected type")
-		}
-
-		err := services.MonitoringService{
-			EventName: string(event.Type),
-			Resource:  utils.RESOUCETYPE_NODES,
-			PayLoad:   obj,
-		}.PushEvent(&session)
-		if err != nil {
-			time.Sleep(1 * time.Second)
-
-			logrus.Error(err)
-			session.Conn.Close()
-			session = *session.NewSession()
-			services.MonitoringService{
+			err := services.MonitoringService{
+				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_NODES,
 				PayLoad:   obj,
 			}.PushEvent(&session)
+
+			if err != nil {
+				logrus.Error(err)
+				session.Conn.Close()
+				session = *session.NewSession()
+				services.MonitoringService{
+					EventName: string(event.Type),
+					Resource:  utils.RESOUCETYPE_NODES,
+					PayLoad:   obj,
+				}.PushEvent(&session)
+			}
+
+		case <-time.After(30 * time.Minute):
+			logrus.Info("Timeout, restarting event watcher")
+			return nil
+
 		}
-		services.ClusterCacheService{}.PushMetricsUpdates()
+	}
+
+}
+
+func (c NodesController) Watch() {
+	for {
+		if err := c.runWatcherEventLoop(); err != nil {
+			logrus.Error(err)
+		}
+
 	}
 }
 

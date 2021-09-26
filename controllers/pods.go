@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	services "github.com/kube-carbonara/cluster-agent/services"
@@ -19,13 +20,17 @@ import (
 type PodsController struct {
 }
 
-func (c PodsController) Watch() {
+func (c PodsController) runWatcherEventLoop() error {
 	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Clientset.CoreV1().Pods(v1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
+		return err
 	}
+
+	channel := watch.ResultChan()
+
 	done := make(chan struct{})
 
 	session := utils.Session{
@@ -33,33 +38,53 @@ func (c PodsController) Watch() {
 		Channel: "monitoring",
 	}
 	session.NewSession()
-	defer close(done)
 	defer session.Conn.Close()
-	for event := range watch.ResultChan() {
+	defer close(done)
+	for {
+		select {
+		case event, ok := <-channel:
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
+			obj, ok := event.Object.(*v1.Pod)
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
 
-		obj, ok := event.Object.(*v1.Pod)
-		if !ok {
-			log.Fatal("unexpected type")
-		}
-
-		err := services.MonitoringService{
-			NameSpace: obj.Namespace,
-			EventName: string(event.Type),
-			Resource:  utils.RESOUCETYPE_PODS,
-			PayLoad:   obj,
-		}.PushEvent(&session)
-		if err != nil {
-
-			logrus.Error(err)
-			session.Conn.Close()
-			session = *session.NewSession()
-			services.MonitoringService{
+			err := services.MonitoringService{
+				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_PODS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
+
+			if err != nil {
+				logrus.Error(err)
+				session.Conn.Close()
+				session = *session.NewSession()
+				services.MonitoringService{
+					EventName: string(event.Type),
+					Resource:  utils.RESOUCETYPE_PODS,
+					PayLoad:   obj,
+				}.PushEvent(&session)
+			}
+
+		case <-time.After(30 * time.Minute):
+			logrus.Info("Timeout, restarting event watcher")
+			return nil
+
 		}
-		services.ClusterCacheService{}.PushMetricsUpdates()
+	}
+
+}
+
+func (c PodsController) Watch() {
+	for {
+		if err := c.runWatcherEventLoop(); err != nil {
+			logrus.Error(err)
+		}
 
 	}
 }

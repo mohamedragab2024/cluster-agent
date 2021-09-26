@@ -32,14 +32,19 @@ func (c IngressController) WatchTest(session *utils.Session) {
 
 }
 
-func (c IngressController) Watch() {
+func (c IngressController) runWatcherEventLoop() error {
 	config := utils.NewConfig()
 	var client utils.Client = *utils.NewClient()
 	watch, err := client.Networkingv1client.Ingresses(CoreV1.NamespaceAll).Watch(ctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Fatal(err.Error())
+		return err
 	}
+
+	channel := watch.ResultChan()
+
 	done := make(chan struct{})
+
 	session := utils.Session{
 		Host:    config.RemoteProxy,
 		Channel: "monitoring",
@@ -47,31 +52,52 @@ func (c IngressController) Watch() {
 	session.NewSession()
 	defer session.Conn.Close()
 	defer close(done)
-	for event := range watch.ResultChan() {
+	for {
+		select {
+		case event, ok := <-channel:
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
+			obj, ok := event.Object.(*networkingv1.Ingress)
+			if !ok {
+				log.Fatal("unexpected type")
+				return nil
+			}
 
-		obj, ok := event.Object.(*networkingv1.Ingress)
-		if !ok {
-			log.Fatal("unexpected type")
-		}
-
-		err := services.MonitoringService{
-			NameSpace: obj.Namespace,
-			EventName: string(event.Type),
-			Resource:  utils.RESOUCETYPE_INGRESS,
-			PayLoad:   obj,
-		}.PushEvent(&session)
-
-		if err != nil {
-			logrus.Error(err)
-			session.Conn.Close()
-			session = *session.NewSession()
-			services.MonitoringService{
+			err := services.MonitoringService{
+				NameSpace: obj.Namespace,
 				EventName: string(event.Type),
 				Resource:  utils.RESOUCETYPE_INGRESS,
 				PayLoad:   obj,
 			}.PushEvent(&session)
 
+			if err != nil {
+				logrus.Error(err)
+				session.Conn.Close()
+				session = *session.NewSession()
+				services.MonitoringService{
+					EventName: string(event.Type),
+					Resource:  utils.RESOUCETYPE_INGRESS,
+					PayLoad:   obj,
+				}.PushEvent(&session)
+			}
+
+		case <-time.After(30 * time.Minute):
+			logrus.Info("Timeout, restarting event watcher")
+			return nil
+
 		}
+	}
+
+}
+
+func (c IngressController) Watch() {
+	for {
+		if err := c.runWatcherEventLoop(); err != nil {
+			logrus.Error(err)
+		}
+
 	}
 }
 
