@@ -217,6 +217,12 @@ func (c DeploymentsController) Restart(context echo.Context, nameSpaceName strin
 		})
 	}
 	deployment.Spec.Template.ObjectMeta.Annotations = make(map[string]string)
+
+	if deployment.Spec.Template.ObjectMeta.Annotations == nil {
+		deployment.Spec.Template.ObjectMeta.Annotations = make(map[string]string)
+	}
+	deployment.Spec.Template.ObjectMeta.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
+
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).Update(ctx.TODO(), deployment, metav1.UpdateOptions{})
 	if err != nil {
