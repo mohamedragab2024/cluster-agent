@@ -66,7 +66,15 @@ func (c DeploymentsController) Watch() {
 				}.PushEvent(&session)
 
 				if err != nil {
-					logrus.Error("Error sending deployment events: ", err.Error())
+					logrus.Error(err)
+					session.Conn.Close()
+					session = *session.NewSession()
+					services.MonitoringService{
+						EventName: string(event.Type),
+						Resource:  utils.RESOUCETYPE_DEPLOYMENTS,
+						PayLoad:   obj,
+					}.PushEvent(&session)
+					time.Sleep(3 * time.Second)
 				}
 			}
 		}

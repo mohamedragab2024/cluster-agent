@@ -12,6 +12,7 @@ import (
 	services "github.com/kube-carbonara/cluster-agent/services"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -42,12 +43,23 @@ func (c PodsController) Watch() {
 			log.Fatal("unexpected type")
 		}
 
-		services.MonitoringService{
+		err := services.MonitoringService{
 			NameSpace: obj.Namespace,
 			EventName: string(event.Type),
 			Resource:  utils.RESOUCETYPE_PODS,
 			PayLoad:   obj,
 		}.PushEvent(&session)
+		if err != nil {
+			logrus.Error(err)
+			session.Conn.Close()
+			session = *session.NewSession()
+			services.MonitoringService{
+				EventName: string(event.Type),
+				Resource:  utils.RESOUCETYPE_PODS,
+				PayLoad:   obj,
+			}.PushEvent(&session)
+			time.Sleep(3 * time.Second)
+		}
 		services.ClusterCacheService{}.PushMetricsUpdates()
 		time.Sleep(2 * time.Second)
 

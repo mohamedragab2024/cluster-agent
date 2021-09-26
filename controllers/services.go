@@ -62,12 +62,23 @@ func (c ServicesController) Watch() {
 			log.Fatal("unexpected type")
 		}
 
-		services.MonitoringService{
+		err := services.MonitoringService{
 			EventName: string(event.Type),
 			Resource:  utils.RESOUCETYPE_SERVICES,
 			PayLoad:   obj,
 		}.PushEvent(&session)
-		time.Sleep(2 * time.Second)
+		if err != nil {
+			logrus.Error(err)
+			session.Conn.Close()
+			session = *session.NewSession()
+			services.MonitoringService{
+				EventName: string(event.Type),
+				Resource:  utils.RESOUCETYPE_SERVICES,
+				PayLoad:   obj,
+			}.PushEvent(&session)
+			time.Sleep(3 * time.Second)
+		}
+
 	}
 }
 

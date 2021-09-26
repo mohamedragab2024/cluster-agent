@@ -17,7 +17,7 @@ type Session struct {
 	mu      sync.Mutex
 }
 
-func (s *Session) NewSession() {
+func (s *Session) NewSession() *Session {
 	u := url.URL{Scheme: "ws", Host: s.Host, Path: fmt.Sprintf("/%s", s.Channel)}
 	log.Printf("connecting to %s", u.String())
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
@@ -26,6 +26,7 @@ func (s *Session) NewSession() {
 		os.Exit(0)
 	}
 	s.Conn = conn
+	return s
 }
 
 func (s *Session) Send(message []byte) error {
