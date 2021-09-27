@@ -3,9 +3,9 @@ package controllers
 import (
 	ctx "context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 type PodsController struct {
@@ -120,10 +121,10 @@ func (c PodsController) Get(context echo.Context, nameSpaceName string) error {
 }
 
 func (c PodsController) GetBySelector(context echo.Context, nameSpaceName string, selector string) error {
-	fmt.Printf("getting pods by selector %s \n", selector)
+	labelSelector := c.parseSelector(selector)
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.CoreV1().Pods(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{
-		LabelSelector: selector,
+		LabelSelector: labels.SelectorFromSet(labelSelector).String(),
 	})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
@@ -194,4 +195,20 @@ func (c PodsController) Delete(context echo.Context, nameSpaceName string, name 
 		Data:         nil,
 		ResourceType: utils.RESOUCETYPE_PODS,
 	})
+}
+
+func (c PodsController) parseSelector(selector string) labels.Set {
+	specSelector := map[string]string{}
+	selectors := strings.Split(selector, ";")
+	for _, v := range selectors {
+		if s := strings.Split(v, "="); len(s) > 1 {
+			key := s[0]
+			value := s[1]
+			specSelector[key] = value
+		}
+
+	}
+	set := labels.Set(specSelector)
+	return set
+
 }

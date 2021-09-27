@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
@@ -15,6 +16,7 @@ import (
 	v1 "k8s.io/api/apps/v1"
 	CoreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 type DeploymentsController struct{}
@@ -132,9 +134,10 @@ func (c DeploymentsController) Get(context echo.Context, nameSpaceName string) e
 }
 
 func (c DeploymentsController) GetBySelector(context echo.Context, nameSpaceName string, selector string) error {
+	labelSelector := c.parseSelector(selector)
 	var client utils.Client = *utils.NewClient()
 	result, err := client.Clientset.AppsV1().Deployments(nameSpaceName).List(ctx.TODO(), metav1.ListOptions{
-		LabelSelector: selector,
+		LabelSelector: labels.SelectorFromSet(labelSelector).String(),
 	})
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, models.Response{
@@ -270,4 +273,20 @@ func (c DeploymentsController) ReScale(context echo.Context, nameSpaceName strin
 		Data:         utils.StructToMap(result),
 		ResourceType: utils.RESOUCETYPE_DEPLOYMENTS,
 	})
+}
+
+func (c DeploymentsController) parseSelector(selector string) labels.Set {
+	specSelector := map[string]string{}
+	selectors := strings.Split(selector, ";")
+	for _, v := range selectors {
+		if s := strings.Split(v, "="); len(s) > 1 {
+			key := s[0]
+			value := s[1]
+			specSelector[key] = value
+		}
+
+	}
+	set := labels.Set(specSelector)
+	return set
+
 }
