@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/kube-carbonara/cluster-agent/models"
 	utils "github.com/kube-carbonara/cluster-agent/utils"
@@ -92,4 +93,10 @@ func (c ClusterCacheService) RowClusterMetrics(metrics []v1beta1.NodeMetrics, no
 	}
 
 	return row
+}
+
+func (c ClusterCacheService) PushMetricsUpdatesEventLoop() {
+	for range time.Tick(time.Minute * 1) {
+		c.PushMetricsUpdates()
+	}
 }

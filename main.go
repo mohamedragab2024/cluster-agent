@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kube-carbonara/cluster-agent/controllers"
 	routers "github.com/kube-carbonara/cluster-agent/routers"
+	"github.com/kube-carbonara/cluster-agent/services"
 	"github.com/kube-carbonara/cluster-agent/utils"
 	"github.com/labstack/echo/v4"
 )
@@ -89,6 +90,7 @@ func main() {
 
 	})
 	handleRouting(e)
+	go services.ClusterCacheService{}.PushMetricsUpdatesEventLoop()
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
