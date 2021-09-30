@@ -19,7 +19,7 @@ func (router EventsRouter) Handle(e *echo.Echo) {
 		return eventController.Get(context, ns)
 	})
 
-	e.GET("/:ns/services/:id", func(context echo.Context) error {
+	e.GET("/:ns/events/:id", func(context echo.Context) error {
 		return eventController.GetOne(context, context.Param("ns"), context.Param("id"))
 	})
 
