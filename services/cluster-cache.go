@@ -33,7 +33,7 @@ func (c ClusterCacheService) PushMetricsUpdates() {
 
 	config := utils.NewConfig()
 	client := &http.Client{}
-	r, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s://%s/clusters/%s", config.RemoteSchema, config.RemoteProxy, config.ClientId), bytes.NewBuffer(jsonReq))
+	r, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s://%s/clusters/updatemetrics/%s", config.RemoteSchema, config.RemoteProxy, config.ClientId), bytes.NewBuffer(jsonReq))
 	if err != nil {
 		logrus.Error(err)
 		return
