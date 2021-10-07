@@ -10,4 +10,5 @@ const (
 	RESOUCETYPE_SECRETS     string = "Secrets"
 	EVENTS                  string = "Events"
 	WORK_LOAD               string = "Work Load"
+	APPS                    string = "Apps"
 )
