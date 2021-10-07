@@ -36,7 +36,6 @@ func handleRouting(e *echo.Echo) {
 	secretRouter := routers.SecretRouter{}
 	eventRouter := routers.EventsRouter{}
 	workloadRouter := routers.WorkLoadsRouter{}
-	appsRouter := routers.AppsRouter{}
 	namespacesRouter.Handle(e)
 	podsRouter.Handle(e)
 	deplymentRouter.Handle(e)
@@ -47,7 +46,6 @@ func handleRouting(e *echo.Echo) {
 	secretRouter.Handle(e)
 	eventRouter.Handle(e)
 	workloadRouter.Handle(e)
-	appsRouter.Handle(e)
 }
 
 func main() {
